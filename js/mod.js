@@ -49,7 +49,7 @@ async function cargarPendientes() {
                 <a href="${submit.video_url}" target="_blank" class="btn-primary" style="text-decoration:none; height: fit-content;">Ver Video</a>
             </div>
             
-            <div style="display: flex; gap: 15px; width: 100%; align-items: center;">
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; align-items: center;">
                 <input type="number" id="pts-${submit.submit_id}" placeholder="Puntos a otorgar" style="padding: 0.5rem; border-radius: 5px; border: none; background: #2a2a35; color: white; width: 150px;">
                 
                 <button class="btn-primary btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}" style="background-color: #43b581;">Aceptar Récord</button>

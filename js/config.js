@@ -7,7 +7,7 @@ const supabaseKey = 'sb_publishable_wJHKG2HgYFGcYjqE-6XWgA_LMCiIE9O'
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // --- VERSIÓN DE LA APLICACIÓN ---
-export const APP_VERSION = "0.2.0 alpha";
+export const APP_VERSION = "0.2.1 alpha";
 
 // Inyectamos la versión en la esquina inferior derecha de todas las pantallas
 document.addEventListener("DOMContentLoaded", () => {
@@ -53,3 +53,16 @@ if (searchInput) {
         });
     });
 }
+
+// --- LÓGICA DEL MENÚ MÓVIL ---
+document.addEventListener("DOMContentLoaded", () => {
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const navActions = document.getElementById('nav-actions');
+
+    if (menuBtn && navActions) {
+        menuBtn.addEventListener('click', () => {
+            // Activa o desactiva la clase 'active' para abrir/cerrar el menú
+            navActions.classList.toggle('active');
+        });
+    }
+});

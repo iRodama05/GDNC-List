@@ -93,35 +93,56 @@
     font-style: italic;
 }
 
+/* Ocultar botón hamburguesa en escritorio por defecto */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
 /* =========================================
    COMPATIBILIDAD MÓVIL (PANTALLAS < 768px)
    ========================================= */
 @media (max-width: 768px) {
-    /* Navbar: Apilar logo y botones */
     .navbar {
-        flex-direction: column;
-        padding: 15px;
-        gap: 15px;
+        flex-direction: row; /* Mantiene el logo y el botón en la misma línea */
+        justify-content: space-between;
+        flex-wrap: wrap; /* Permite que el menú caiga abajo */
+        padding: 15px 20px;
     }
-    
+
+    .menu-toggle {
+        display: block; /* Mostramos la hamburguesa */
+    }
+
+    /* Transformamos el contenedor derecho en un Menú Dropdown oculto */
     .nav-actions {
+        display: none; /* Oculto por defecto */
         width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    /* Cabecera del Ranking: Centrar texto y expandir buscador */
-    .ranking-header {
         flex-direction: column;
+        background-color: #1a1a20;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border: 1px solid #333;
         align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Esta clase se activará con JavaScript para mostrar el menú */
+    .nav-actions.active {
+        display: flex;
+    }
+
+    /* Hacemos que los elementos del perfil se apilen en vertical dentro del menú */
+    .nav-user-profile {
+        flex-direction: column;
         text-align: center;
-    }
-
-    .search-bar {
-        width: 100%; /* Que el buscador ocupe todo el ancho disponible */
-    }
-
-    .search-bar:focus {
-        width: 100%; 
+        gap: 15px;
     }
 }

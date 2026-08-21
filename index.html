@@ -10,19 +10,20 @@
 </head>
 <body>
     <!-- --- NAVBAR PRINCIPAL --- -->
-    <header class="navbar">
-        <!-- Logo interactivo con colores verde, blanco y rojo -->
-        <a href="index.html" class="logo">
+<header class="navbar">
+        <!-- Logo -->
+        <a href="index.html" class="logo" style="text-decoration: none;">
             <span class="logo-g">G</span><span class="logo-dn">DN</span><span class="logo-c">C</span>
             <span class="logo-list">List</span>
         </a>
         
-        <!-- Contenedor derecho: Botón Submit + Perfil -->
-        <div class="nav-actions">
+        <!-- NUEVO: Botón de Hamburguesa (Solo visible en celular) -->
+        <button id="mobile-menu-btn" class="menu-toggle">☰</button>
+        
+        <!-- Contenedor derecho (Agregamos el id="nav-actions") -->
+        <div class="nav-actions" id="nav-actions">
             <button id="btn-open-submit" class="btn-submit" style="display: none;">+ Subir Récord</button>
-            
             <div class="auth-section" id="auth-section">
-                <!-- Esto cambiará dinámicamente con JS si el usuario inicia sesión -->
                 <button id="btn-login" class="btn-primary">Iniciar sesión con Discord</button>
             </div>
         </div>

@@ -11,18 +11,18 @@
 <body>
     <!-- --- NAVBAR PRINCIPAL --- -->
     <header class="navbar">
-        <!-- Logo interactivo (Al hacer clic, vuelve al index) -->
+        <!-- Logo -->
         <a href="index.html" class="logo" style="text-decoration: none;">
             <span class="logo-g">G</span><span class="logo-dn">DN</span><span class="logo-c">C</span>
             <span class="logo-list">List</span>
-            <!-- La siguiente línea SOLO déjala en mod-panel.html, bórrala en index y profile -->
-            <span id="mod-tag" style="color:#ffcc00; font-size:0.8rem; margin-left:10px; font-style: normal; display: none;">(MOD PANEL)</span>
         </a>
         
-        <!-- Contenedor derecho: Botón Submit + Perfil -->
-        <div class="nav-actions">
+        <!-- Botón de Hamburguesa (Solo visible en celular) -->
+        <button id="mobile-menu-btn" class="menu-toggle">☰</button>
+        
+        <!-- Contenedor derecho (Agregamos el id="nav-actions") -->
+        <div class="nav-actions" id="nav-actions">
             <button id="btn-open-submit" class="btn-submit" style="display: none;">+ Subir Récord</button>
-            
             <div class="auth-section" id="auth-section">
                 <button id="btn-login" class="btn-primary">Iniciar sesión con Discord</button>
             </div>
