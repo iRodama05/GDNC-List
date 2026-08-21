@@ -7,7 +7,7 @@ const supabaseKey = 'sb_publishable_wJHKG2HgYFGcYjqE-6XWgA_LMCiIE9O'
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // --- VERSIÓN DE LA APLICACIÓN ---
-export const APP_VERSION = "1.0.0 alpha";
+export const APP_VERSION = "1.1.0 alpha";
 
 // Inyectamos la versión en la esquina inferior derecha de todas las pantallas
 document.addEventListener("DOMContentLoaded", () => {
