@@ -80,3 +80,29 @@
     width: 95%;
     margin: 0 auto;
 }
+
+/* --- PERFIL EN MÓVIL --- */
+@media (max-width: 768px) {
+    /* Banner: Foto arriba, stats abajo */
+    .profile-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .profile-stats-container {
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Alinear icono de Discord al centro */
+    .profile-banner div[style*="display: flex"] {
+        justify-content: center;
+    }
+
+    /* Cuadrícula: 1 video por fila */
+    .records-grid {
+        grid-template-columns: 1fr;
+    }
+}

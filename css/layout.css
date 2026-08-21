@@ -67,3 +67,61 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
 }
+
+/* --- BARRA DE BÚSQUEDA (INDEX) --- */
+.search-bar {
+    background-color: #1a1a20;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    width: 280px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.search-bar:focus {
+    border-color: #28a745; /* Verde de tu logo */
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
+    width: 300px; /* Se expande un poco al hacer clic (efecto dinámico) */
+}
+
+.search-bar::placeholder {
+    color: #555;
+    font-style: italic;
+}
+
+/* =========================================
+   COMPATIBILIDAD MÓVIL (PANTALLAS < 768px)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Navbar: Apilar logo y botones */
+    .navbar {
+        flex-direction: column;
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .nav-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Cabecera del Ranking: Centrar texto y expandir buscador */
+    .ranking-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .search-bar {
+        width: 100%; /* Que el buscador ocupe todo el ancho disponible */
+    }
+
+    .search-bar:focus {
+        width: 100%; 
+    }
+}
