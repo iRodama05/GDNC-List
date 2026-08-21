@@ -51,11 +51,18 @@
         </div>
     </div>
 
-    <main class="container">
-            <section class="ranking-header">
-                <h2>Ranking Global</h2>
-                <p>Los jugadores con más puntos de la comunidad.</p>
-            </section>
+        <main class="container">
+            <!-- ENCABEZADO DEL RANKING Y BÚSQUEDA -->
+            <div class="ranking-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem; color: #fff;">Ranking Global</h1>
+                    <p style="color: #888; margin: 5px 0 0 0; font-size: 0.95rem;">Los jugadores con más puntos de la comunidad.</p>
+                </div>
+            
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-bar" placeholder="Buscar jugador...">
+                </div>
+            </div>
 
             <!-- Contenedor donde se inyectan las tarjetas -->
             <div id="ranking-container" class="ranking-grid">

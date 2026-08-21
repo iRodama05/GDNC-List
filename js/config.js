@@ -1,6 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// Más adelante reemplazaremos esto con las claves reales de tu proyecto
+//Claves 
 const supabaseUrl = 'https://ibhdscjosnqakvtrqbnr.supabase.co'
 const supabaseKey = 'sb_publishable_wJHKG2HgYFGcYjqE-6XWgA_LMCiIE9O'
 
@@ -28,3 +28,28 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.body.appendChild(versionTag);
 });
+
+// --- SISTEMA DE BÚSQUEDA EN TIEMPO REAL ---
+const searchInput = document.getElementById('search-input');
+
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        // Convertimos el texto a minúsculas para que la búsqueda no sea estricta
+        const term = e.target.value.toLowerCase();
+        
+        // Seleccionamos todas las tarjetas renderizadas en el DOM
+        const playerCards = document.querySelectorAll('.player-card');
+        
+        playerCards.forEach(card => {
+            // Buscamos el nombre del jugador dentro de cada tarjeta
+            const playerName = card.querySelector('.player-gd-title').textContent.toLowerCase();
+            
+            // Si el nombre incluye lo que escribimos, mostramos la tarjeta (flex), si no, la ocultamos (none)
+            if (playerName.includes(term)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
