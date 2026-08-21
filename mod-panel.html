@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Moderación - GDNC</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- --- NAVBAR PRINCIPAL --- -->
+    <header class="navbar">
+        <!-- Logo interactivo (Al hacer clic, vuelve al index) -->
+        <a href="index.html" class="logo" style="text-decoration: none;">
+            <span class="logo-g">G</span><span class="logo-dn">DN</span><span class="logo-c">C</span>
+            <span class="logo-list">List</span>
+            <!-- La siguiente línea SOLO déjala en mod-panel.html, bórrala en index y profile -->
+            <span id="mod-tag" style="color:#ffcc00; font-size:0.8rem; margin-left:10px; font-style: normal; display: none;">(MOD PANEL)</span>
+        </a>
+        
+        <!-- Contenedor derecho: Botón Submit + Perfil -->
+        <div class="nav-actions">
+            <button id="btn-open-submit" class="btn-submit" style="display: none;">+ Subir Récord</button>
+            
+            <div class="auth-section" id="auth-section">
+                <button id="btn-login" class="btn-primary">Iniciar sesión con Discord</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="ranking-header">
+            <h2>Récords Pendientes</h2>
+            <p>Revisa la evidencia, asigna los puntos y actualiza la lista.</p>
+        </section>
+
+        <!-- Aquí inyectaremos los récords pendientes -->
+        <div id="pendientes-container" class="ranking-grid">
+            <p>Verificando permisos...</p>
+        </div>
+    </main>
+
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/mod.js"></script>
+</body>
+</html>
