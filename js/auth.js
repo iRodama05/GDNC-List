@@ -15,8 +15,15 @@ let currentUserUid = null;
 let currentCodigo = null;
 let currentGdName = null;
 
+// --- FUNCIÓN DE LOGIN ---
 async function loginConDiscord() {
-    await supabase.auth.signInWithOAuth({ provider: 'discord' });
+    await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: {
+            // 'window.location.origin' detecta automáticamente si estás en local o en Vercel
+            redirectTo: window.location.origin 
+        }
+    });
 }
 
 async function cerrarSesion() {
