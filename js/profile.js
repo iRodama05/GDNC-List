@@ -6,9 +6,11 @@ import { supabase } from './config.js';
 const profileBanner = document.getElementById('profile-banner');
 const recordsGrid = document.getElementById('records-grid');
 
-// Extraer el UID de la URL
 const urlParams = new URLSearchParams(window.location.search);
 const targetUid = urlParams.get('uid');
+
+// Declaramos la variable globalmente para usarla al guardar el récord manual
+let perfilDueno = null; 
 
 // ==========================================
 // 2. CARGA PRINCIPAL DEL PERFIL
@@ -16,7 +18,6 @@ const targetUid = urlParams.get('uid');
 async function cargarPerfilCompleto() {
     if (!targetUid) return profileBanner.innerHTML = "<p style='color:red;'>Usuario no especificado.</p>";
 
-    // --- A. Comprobar si el visitante es Moderador ---
     let isMod = false;
     const { data: { user: sessionUser } } = await supabase.auth.getUser();
     if (sessionUser) {
@@ -27,7 +28,6 @@ async function cargarPerfilCompleto() {
         }
     }
 
-    // --- B. Cargar datos del dueño del perfil ---
     const { data: perfil, error: errPerfil } = await supabase
         .from('usuarios')
         .select('*')
@@ -35,19 +35,27 @@ async function cargarPerfilCompleto() {
         .maybeSingle();
 
     if (errPerfil || !perfil) return profileBanner.innerHTML = "<p style='color:red;'>Jugador no encontrado.</p>";
+    
+    perfilDueno = perfil; // Guardamos los datos para el formulario manual
 
-    // --- C. Renderizar Banner Superior ---
+    // Botón de Mod inyectado en el banner
+    const modBannerBtn = isMod ? `
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #333;">
+            <button id="btn-mod-add-record" class="btn-primary" style="background-color: #e0a800; color: black; font-size: 0.8rem; padding: 5px 15px;">+ Añadir Récord Manual</button>
+        </div>
+    ` : '';
+
     profileBanner.innerHTML = `
         <img src="${perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="profile-avatar-giant">
         <div style="flex: 1;">
             <h1 style="margin: 0; font-size: 2.5rem;">${perfil.gd_username}</h1>
-            
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; color: #5865F2;">
                 <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
                     <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.15ZM42.68,65.27C36.67,65.27,31.7,59.65,31.7,52.7c0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C53.66,59.65,48.8,65.27,42.68,65.27Zm41.85,0c-6.01,0-10.98-5.62-10.98-12.58,0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C95.51,59.65,90.65,65.27,84.53,65.27Z"/>
                 </svg>
                 <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px;">${perfil.discord_username}</span>
             </div>
+            ${modBannerBtn}
         </div>
         <div class="profile-stats-container">
             <div class="stat-box">
@@ -61,7 +69,6 @@ async function cargarPerfilCompleto() {
         </div>
     `;
 
-    // --- D. Cargar Récords del Jugador ---
     const { data: records } = await supabase
         .from('submits')
         .select('*')
@@ -71,10 +78,9 @@ async function cargarPerfilCompleto() {
 
     if (!records || records.length === 0) {
         recordsGrid.innerHTML = "<p style='color: #888;'>Este jugador aún no tiene récords registrados.</p>";
-        return;
+        return inicializarEventosMod(isMod); // Cargar eventos aunque no haya niveles
     }
 
-    // --- E. Renderizar Cuadrícula de Videos ---
     recordsGrid.innerHTML = records.map((record, index) => {
         let embedUrl = record.video_url;
         if (embedUrl.includes('youtube.com/watch?v=')) {
@@ -83,7 +89,6 @@ async function cargarPerfilCompleto() {
             embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
         }
 
-        // Si es MOD, inyectamos los botones secretos
         const modControls = isMod ? `
             <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; width: 100%;">
                 <button class="btn-outline btn-edit-record" data-id="${record.submit_id}" data-pts="${record.puntos_asignados}" style="border-color: #e0a800; color: #e0a800; padding: 2px 10px; font-size: 0.75rem;">Editar Puntos</button>
@@ -109,7 +114,6 @@ async function cargarPerfilCompleto() {
             </div>
         `;
 
-        // Línea divisoria después del Top 3
         if (index === 2 && records.length > 3) {
             return cardHTML + `
                 <div style="grid-column: 1 / -1; margin: 30px 0 10px 0;">
@@ -122,8 +126,9 @@ async function cargarPerfilCompleto() {
         }
         return cardHTML;
     }).join('');
-}
 
+    inicializarEventosMod(isMod);
+}
 
 // ==========================================
 // 3. SISTEMA DE COMENTARIOS Y LIKES
@@ -156,14 +161,11 @@ async function abrirModalComentarios() {
     commentsList.innerHTML = '<p style="color: #888; text-align: center;">Cargando...</p>';
     likeCountDisplay.textContent = '...';
 
-    // Cargar cantidad total de likes
     const { count: likes } = await supabase.from('submit_likes').select('*', { count: 'exact', head: true }).eq('submit_id', currentSubmitId);
     likeCountDisplay.textContent = likes || 0;
 
-    // Comprobar estado del Like del usuario
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-        // CORRECCIÓN: .maybeSingle() en lugar de .single() para evitar Error 406
         const { data: miLike } = await supabase.from('submit_likes').select('id').eq('submit_id', currentSubmitId).eq('user_uid', user.id).maybeSingle();
         if (miLike) {
             btnLikeSubmit.style.backgroundColor = '#ff3333';
@@ -174,7 +176,6 @@ async function abrirModalComentarios() {
         }
     }
 
-    // Cargar y dibujar comentarios
     const { data: comentarios } = await supabase
         .from('comentarios')
         .select('texto, creado_en, usuarios ( gd_username, avatar_url )')
@@ -226,12 +227,10 @@ btnLikeSubmit.addEventListener('click', async () => {
     abrirModalComentarios();
 });
 
-
 // ==========================================
 // 4. HERRAMIENTAS DE MODERACIÓN
 // ==========================================
 
-// Motor que actualiza la economía del jugador al alterar sus niveles
 async function recalcularPerfil(uid) {
     const { data: top3 } = await supabase.from('submits')
         .select('nivel_nombre, puntos_asignados')
@@ -246,41 +245,100 @@ async function recalcularPerfil(uid) {
     await supabase.from('usuarios').update({ puntos_totales: suma, top_3_hardests: top3Hardests }).eq('uid', uid);
 }
 
-// Escuchar los botones secretos de MOD
-document.addEventListener('click', async (e) => {
+function inicializarEventosMod(isMod) {
+    if (!isMod) return;
+
+    // A. Inyectar el HTML del formulario Modal para añadir récords manualmente
+    const modalFormHTML = `
+        <div id="mod-add-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 21, 0.95); z-index: 2000; justify-content: center; align-items: center;">
+            <div style="background: var(--bg-card); padding: 2rem; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid #e0a800; display: flex; flex-direction: column; gap: 15px;">
+                <h2 style="margin: 0; color: #e0a800;">Añadir Récord (MOD)</h2>
+                <input type="text" id="mod-lvl-name" placeholder="Nombre del Nivel" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
+                <input type="number" id="mod-lvl-id" placeholder="ID del Nivel" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
+                <input type="url" id="mod-lvl-video" placeholder="URL del Video (YouTube)" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
+                <input type="number" id="mod-lvl-pts" placeholder="Puntos a otorgar" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button id="btn-mod-cancel" class="btn-outline">Cancelar</button>
+                    <button id="btn-mod-submit" class="btn-primary" style="background-color: #e0a800; color: black;">Guardar Récord</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalFormHTML);
+
+    const modModal = document.getElementById('mod-add-modal');
     
-    // --- BORRAR RÉCORD ---
-    if (e.target.classList.contains('btn-delete-record')) {
-        const submitId = e.target.getAttribute('data-id');
-        if (confirm("MOD: ¿Eliminar este récord permanentemente? Los puntos se recalcularán.")) {
-            e.target.textContent = "...";
-            e.target.disabled = true;
-            
-            await supabase.from('submits').delete().eq('submit_id', submitId);
-            await recalcularPerfil(targetUid);
-            window.location.reload();
-        }
-    }
+    // Evento para abrir el modal
+    document.getElementById('btn-mod-add-record').addEventListener('click', () => {
+        modModal.style.display = 'flex';
+    });
 
-    // --- EDITAR PUNTOS ---
-    if (e.target.classList.contains('btn-edit-record')) {
-        const submitId = e.target.getAttribute('data-id');
-        const ptsActuales = e.target.getAttribute('data-pts');
-        
-        // MVP: Usamos un prompt nativo para no tener que armar todo un modal HTML nuevo
-        const nuevosPts = prompt("MOD: Ingresa la nueva cantidad de puntos para este récord:", ptsActuales);
-        
-        if (nuevosPts !== null && !isNaN(nuevosPts) && Number(nuevosPts) > 0) {
-            e.target.textContent = "...";
-            e.target.disabled = true;
-            
-            await supabase.from('submits').update({ puntos_asignados: Number(nuevosPts) }).eq('submit_id', submitId);
-            await recalcularPerfil(targetUid);
-            window.location.reload();
-        }
-    }
-});
+    // Evento para cerrar el modal
+    document.getElementById('btn-mod-cancel').addEventListener('click', () => {
+        modModal.style.display = 'none';
+    });
 
+    // B. Lógica para guardar el récord manualmente
+    document.getElementById('btn-mod-submit').addEventListener('click', async (e) => {
+        const name = document.getElementById('mod-lvl-name').value.trim();
+        const id = document.getElementById('mod-lvl-id').value.trim();
+        const video = document.getElementById('mod-lvl-video').value.trim();
+        const pts = parseInt(document.getElementById('mod-lvl-pts').value);
+
+        if (!name || !id || !video || isNaN(pts) || pts <= 0) {
+            return alert("Por favor, llena todos los campos correctamente.");
+        }
+
+        e.target.disabled = true;
+        e.target.textContent = "Guardando...";
+
+        // Insertar el récord saltándose la fase de pendientes ('estado: aceptado')
+        await supabase.from('submits').insert([{
+            user_uid: targetUid,
+            gd_username: perfilDueno.gd_username,
+            nivel_nombre: name,
+            nivel_id: id,
+            video_url: video,
+            puntos_asignados: pts,
+            estado: 'aceptado'
+        }]);
+
+        await recalcularPerfil(targetUid);
+        window.location.reload();
+    });
+
+    // C. Escuchar clics en los botones de Borrar y Editar inyectados en las tarjetas
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('btn-delete-record')) {
+            const submitId = e.target.getAttribute('data-id');
+            if (confirm("MOD: ¿Eliminar este récord permanentemente? Los puntos se recalcularán.")) {
+                e.target.textContent = "...";
+                e.target.disabled = true;
+                
+                await supabase.from('submits').delete().eq('submit_id', submitId);
+                await recalcularPerfil(targetUid);
+                window.location.reload();
+            }
+        }
+
+        if (e.target.classList.contains('btn-edit-record')) {
+            const submitId = e.target.getAttribute('data-id');
+            const ptsActuales = e.target.getAttribute('data-pts');
+            
+            const nuevosPts = prompt("MOD: Ingresa la nueva cantidad de puntos para este récord:", ptsActuales);
+            
+            if (nuevosPts !== null && !isNaN(nuevosPts) && Number(nuevosPts) > 0) {
+                e.target.textContent = "...";
+                e.target.disabled = true;
+                
+                await supabase.from('submits').update({ puntos_asignados: Number(nuevosPts) }).eq('submit_id', submitId);
+                await recalcularPerfil(targetUid);
+                window.location.reload();
+            }
+        }
+    });
+}
 
 // Inicializador
 cargarPerfilCompleto();
