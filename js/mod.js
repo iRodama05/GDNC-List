@@ -75,12 +75,11 @@ function asignarEventos() {
         });
     });
 
-    // Evento Aceptar (La lógica compleja)
+    // Evento Aceptar (Lógica de Auto-Corrección Top 3)
     document.querySelectorAll('.btn-accept').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const submitId = e.target.getAttribute('data-id');
             const userUid = e.target.getAttribute('data-uid');
-            const lvlName = e.target.getAttribute('data-lvl');
             const inputPts = document.getElementById(`pts-${submitId}`).value;
             const puntosNuevos = parseInt(inputPts);
 
@@ -90,27 +89,33 @@ function asignarEventos() {
             e.target.textContent = "Procesando...";
 
             try {
-                // 1. Obtener perfil actual del jugador
-                const { data: perfil } = await supabase.from('usuarios').select('puntos_totales, top_3_hardests').eq('uid', userUid).single();
-                
-                // 2. Lógica del Top 3 (Agregar, Ordenar y Cortar a 3)
-                let topActual = perfil.top_3_hardests || [];
-                topActual.push({ nombre: lvlName, puntos: puntosNuevos });
-                topActual.sort((a, b) => b.puntos - a.puntos); // Ordenar de mayor a menor
-                const nuevoTop3 = topActual.slice(0, 3); // Mantener solo los 3 mejores
-
-                // 3. Sumar puntos totales
-                const nuevoTotal = (perfil.puntos_totales || 0) + puntosNuevos;
-
-                // 4. Actualizar Usuario
-                await supabase.from('usuarios')
-                    .update({ puntos_totales: nuevoTotal, top_3_hardests: nuevoTop3 })
-                    .eq('uid', userUid);
-
-                // 5. Actualizar Submit
+                // 1. Actualizar el Submit primero para que ya cuente en la base de datos
                 await supabase.from('submits')
                     .update({ estado: 'aceptado', puntos_asignados: puntosNuevos })
                     .eq('submit_id', submitId);
+                
+                // 2. Extraer los 3 mejores récords aceptados del jugador
+                const { data: top3Niveles } = await supabase
+                    .from('submits')
+                    .select('nivel_nombre, puntos_asignados')
+                    .eq('user_uid', userUid)
+                    .eq('estado', 'aceptado')
+                    .order('puntos_asignados', { ascending: false })
+                    .limit(3);
+
+                // 3. Sumar únicamente los puntos del Top 3
+                const sumaTop3 = top3Niveles.reduce((acumulador, nivel) => acumulador + nivel.puntos_asignados, 0);
+
+                // 4. Formatear la lista visual para la tarjeta de ranking
+                const nuevoTop3 = top3Niveles.map(nivel => ({
+                    nombre: nivel.nivel_nombre,
+                    puntos: nivel.puntos_asignados
+                }));
+
+                // 5. Sobrescribir el perfil del usuario
+                await supabase.from('usuarios')
+                    .update({ puntos_totales: sumaTop3, top_3_hardests: nuevoTop3 })
+                    .eq('uid', userUid);
 
                 cargarPendientes(); // Recargar lista
             } catch (error) {
