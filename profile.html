@@ -7,21 +7,18 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/profile.css"> <!-- Nuevo CSS -->
+    <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
     <!-- --- NAVBAR PRINCIPAL --- -->
     <header class="navbar">
-        <!-- Logo -->
-        <a href="index.html" class="logo" style="text-decoration: none;">
+        <a href="index.html" class="logo">
             <span class="logo-g">G</span><span class="logo-dn">DN</span><span class="logo-c">C</span>
             <span class="logo-list">List</span>
         </a>
         
-        <!-- Botón de Hamburguesa (Solo visible en celular) -->
         <button id="mobile-menu-btn" class="menu-toggle">☰</button>
         
-        <!-- Contenedor derecho (Agregamos el id="nav-actions") -->
         <div class="nav-actions" id="nav-actions">
             <button id="btn-open-submit" class="btn-submit" style="display: none;">+ Subir Récord</button>
             <div class="auth-section" id="auth-section">
@@ -33,10 +30,10 @@
     <main class="container profile-container">
         <!-- Banner del Jugador -->
         <div id="profile-banner" class="profile-banner">
-            <p>Cargando perfil...</p>
+            <p style="color: var(--text-muted);">Cargando perfil...</p>
         </div>
 
-        <h2 style="margin: 2rem 0 1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Historial de Récords</h2>
+        <h2 style="margin: 2rem 0 1rem; border-bottom: 1px solid var(--border-default); padding-bottom: 10px;">Historial de Récords</h2>
         
         <!-- Cuadrícula de Niveles -->
         <div id="records-grid" class="records-grid">
@@ -45,38 +42,55 @@
     </main>
 
     <!-- MODAL DE COMENTARIOS Y LIKES -->
-    <div id="comments-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 21, 0.95); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: var(--bg-card); padding: 2rem; border-radius: 10px; width: 90%; max-width: 500px; border: 1px solid #444; display: flex; flex-direction: column; max-height: 80vh;">
+    <div id="comments-modal" class="modal-overlay">
+        <div class="modal-content" style="max-height: 80vh; display: flex; flex-direction: column;">
             
             <!-- Cabecera del Modal -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 id="modal-lvl-title" style="margin: 0; color: var(--primary-color);">Nivel</h2>
-                <button id="btn-close-comments" class="btn-outline" style="border: none; font-size: 1.5rem; padding: 0 10px;">&times;</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-default); padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 id="modal-lvl-title" style="margin: 0; color: var(--color-discord);">Nivel</h2>
+                <button id="btn-close-comments" style="background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer;">&times;</button>
             </div>
 
             <!-- Botón de Like -->
-            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                <button id="btn-like-submit" class="btn-outline" style="display: flex; align-items: center; gap: 5px; color: #ff3333; border-color: #ff3333;">
+            <div style="margin-bottom: 15px; display: flex; align-items: center;">
+                <button id="btn-like-submit" class="btn-outline btn-outline--danger" style="display: flex; align-items: center; gap: 5px;">
                     ♥ <span id="like-count">0</span> Likes
                 </button>
             </div>
 
             <!-- Lista de Comentarios -->
-            <div id="comments-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; padding-right: 5px;">
+            <div id="comments-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; padding-right: 5px; text-align: left;">
                 <!-- Los comentarios se inyectarán aquí -->
             </div>
 
             <!-- Caja para escribir comentario -->
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <input type="text" id="new-comment-input" placeholder="Escribe un comentario..." style="flex: 1; padding: 0.8rem; border-radius: 5px; border: none; background: #2a2a35; color: white;">
-                <button id="btn-send-comment" class="btn-primary" style="background-color: #00d2ff; color: black;">Enviar</button>
+                <input type="text" id="new-comment-input" placeholder="Escribe un comentario..." class="input-field" style="margin-bottom: 0;">
+                <button id="btn-send-comment" class="btn-primary" style="background-color: var(--color-accent); color: #000;">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AÑADIR RÉCORD (EXCLUSIVO MODS) -->
+    <div id="mod-add-modal" class="modal-overlay">
+        <div class="modal-content modal-content--warning">
+            <h2 style="margin-bottom: 15px; color: var(--color-mod-alt);">Añadir Récord (MOD)</h2>
+            <input type="text" id="mod-lvl-name" placeholder="Nombre del Nivel" class="input-field">
+            <input type="number" id="mod-lvl-id" placeholder="ID del Nivel" class="input-field">
+            <input type="url" id="mod-lvl-video" placeholder="URL del Video (YouTube)" class="input-field">
+            <input type="number" id="mod-lvl-pts" placeholder="Puntos a otorgar" class="input-field">
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button id="btn-mod-cancel" class="btn-outline">Cancelar</button>
+                <button id="btn-mod-submit" class="btn-primary btn-primary--mod">Guardar Récord</button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/ui.js"></script>
     <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/profile.js"></script> <!-- Nuevo Script -->
+    <script type="module" src="js/profile.js"></script>
 </body>
 </html>

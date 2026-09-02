@@ -17,7 +17,7 @@ async function initModPanel() {
 }
 
 async function cargarPendientes() {
-    pendientesContainer.innerHTML = '<p style="color:#888;">Cargando récords...</p>';
+    pendientesContainer.innerHTML = '<p style="color: var(--text-muted);">Cargando récords...</p>';
 
     // 2. Extraer los récords que estén pendientes
     const { data: pendientes, error } = await supabase
@@ -27,34 +27,36 @@ async function cargarPendientes() {
         .order('fecha_submit', { ascending: true });
 
     if (error || pendientes.length === 0) {
-        pendientesContainer.innerHTML = '<p style="color:#43b581; text-align:center;">No hay récords pendientes por revisar. ¡Todo al día!</p>';
+        pendientesContainer.innerHTML = '<p style="color: var(--color-success); text-align:center;">No hay récords pendientes por revisar. ¡Todo al día!</p>';
         return;
     }
 
     pendientesContainer.innerHTML = '';
 
-    // 3. Dibujar cada récord
+    // 3. Dibujar cada récord usando las clases base limpias
     pendientes.forEach(submit => {
         const card = document.createElement('div');
-        card.className = 'player-card'; // Reutilizamos el estilo de las tarjetas
+        // Reutilizamos player-card pero lo adaptamos ligeramente para que sea una columna
+        card.className = 'player-card'; 
         card.style.flexDirection = 'column';
-        card.style.alignItems = 'flex-start';
+        card.style.alignItems = 'stretch';
+        card.style.gap = '15px';
 
         card.innerHTML = `
-            <div style="width: 100%; display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-default); padding-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <div>
-                    <h3 style="color: var(--primary-color);">${submit.nivel_nombre} <span style="font-size:0.8rem; color:#888;">(ID: ${submit.nivel_id})</span></h3>
-                    <p style="font-size:0.9rem;">Enviado por: <strong>${submit.gd_username}</strong></p>
+                    <h3 class="player-card__title" style="color: var(--color-discord);">${submit.nivel_nombre} <span style="font-size:0.8rem; color: var(--text-muted);">(ID: ${submit.nivel_id})</span></h3>
+                    <p style="font-size:0.9rem; color: var(--text-main);">Enviado por: <strong>${submit.gd_username}</strong></p>
                 </div>
-                <a href="${submit.video_url}" target="_blank" class="btn-primary" style="text-decoration:none; height: fit-content;">Ver Video</a>
+                <a href="${submit.video_url}" target="_blank" class="btn-primary" style="text-decoration:none; display: inline-flex; align-items: center; height: fit-content;">Ver Video</a>
             </div>
             
-            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; align-items: center;">
-                <input type="number" id="pts-${submit.submit_id}" placeholder="Puntos a otorgar" style="padding: 0.5rem; border-radius: 5px; border: none; background: #2a2a35; color: white; width: 150px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                <input type="number" id="pts-${submit.submit_id}" class="input-field" placeholder="Puntos a otorgar" style="width: 150px; margin-bottom: 0;">
                 
-                <button class="btn-primary btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}" style="background-color: #43b581;">Aceptar Récord</button>
+                <button class="btn-primary btn-primary--success btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}">Aceptar Récord</button>
                 
-                <button class="btn-outline btn-reject" data-id="${submit.submit_id}" style="color: #d9534f; border-color: #d9534f;">Rechazar</button>
+                <button class="btn-outline btn-outline--danger btn-reject" data-id="${submit.submit_id}">Rechazar</button>
             </div>
         `;
         pendientesContainer.appendChild(card);

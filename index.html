@@ -10,17 +10,14 @@
 </head>
 <body>
     <!-- --- NAVBAR PRINCIPAL --- -->
-<header class="navbar">
-        <!-- Logo -->
-        <a href="index.html" class="logo" style="text-decoration: none;">
+    <header class="navbar">
+        <a href="index.html" class="logo">
             <span class="logo-g">G</span><span class="logo-dn">DN</span><span class="logo-c">C</span>
             <span class="logo-list">List</span>
         </a>
         
-        <!-- NUEVO: Botón de Hamburguesa (Solo visible en celular) -->
         <button id="mobile-menu-btn" class="menu-toggle">☰</button>
         
-        <!-- Contenedor derecho (Agregamos el id="nav-actions") -->
         <div class="nav-actions" id="nav-actions">
             <button id="btn-open-submit" class="btn-submit" style="display: none;">+ Subir Récord</button>
             <div class="auth-section" id="auth-section">
@@ -30,72 +27,70 @@
     </header>
 
     <!-- --- PANTALLA DE CONFIGURACIÓN OBLIGATORIA --- -->
-    <!-- (Ahora separada del header para mejor organización) -->
-    <div id="gd-setup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 21, 0.95); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: var(--bg-card); padding: 2rem; border-radius: 10px; text-align: center; max-width: 400px; border: 1px solid var(--primary-color);">
+    <div id="gd-setup-modal" class="modal-overlay">
+        <div class="modal-content modal-content--warning">
             <h2>Casi listos...</h2>
             <p style="margin: 1rem 0; color: var(--text-muted);">Para terminar de crear tu cuenta, debes enlazar tu perfil de Geometry Dash.</p>
             
             <div id="paso-1-gd">
-                <input type="text" id="gd-input-name" placeholder="Tu nombre en GD" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 5px; border: none; background: #2a2a35; color: white;">
+                <input type="text" id="gd-input-name" placeholder="Tu nombre en GD" class="input-field">
                 <button id="btn-generar-codigo" class="btn-primary" style="width: 100%;">Generar Código</button>
             </div>
 
             <div id="paso-2-gd" style="display: none;">
                 <p>Publica este código en los <strong>comentarios de tu perfil</strong> de GD:</p>
-                <h1 id="codigo-display" style="color: var(--primary-color); margin: 1rem 0; letter-spacing: 2px;">---</h1>
-                <p style="font-size: 0.8rem; color: #888; margin-bottom: 1rem;">(Puede tardar un par de minutos en actualizarse en los servidores)</p>
-                <button id="btn-verificar-gd" class="btn-primary" style="width: 100%; background-color: #43b581;">Verificar y Entrar</button>
+                <h1 id="codigo-display" style="color: var(--color-discord); margin: 1rem 0; letter-spacing: 2px;">---</h1>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">(Puede tardar un par de minutos en actualizarse en los servidores)</p>
+                <button id="btn-verificar-gd" class="btn-primary btn-primary--success" style="width: 100%;">Verificar y Entrar</button>
             </div>
             
-            <p id="gd-error-msg" style="color: #d9534f; margin-top: 1rem; font-size: 0.9rem;"></p>
+            <p id="gd-error-msg" style="color: var(--color-error); margin-top: 1rem; font-size: 0.9rem;"></p>
         </div>
     </div>
 
-        <main class="container">
-            <!-- ENCABEZADO DEL RANKING Y BÚSQUEDA -->
-            <div class="ranking-header" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <h1 style="margin: 0; font-size: 2rem; color: #fff;">Ranking Global</h1>
-                    <p style="color: #888; margin: 5px 0 0 0; font-size: 0.95rem;">Los jugadores con más puntos de la comunidad.</p>
-                </div>
-            
-                <div class="search-container">
-                    <input type="text" id="search-input" class="search-bar" placeholder="Buscar jugador...">
-                </div>
+    <main class="container">
+        <!-- ENCABEZADO DEL RANKING Y BÚSQUEDA -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1 style="margin: 0; font-size: 2rem; color: var(--text-main);">Ranking Global</h1>
+                <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 0.95rem;">Los jugadores con más puntos de la comunidad.</p>
             </div>
-
-            <!-- Contenedor donde se inyectan las tarjetas -->
-            <div id="ranking-container" class="ranking-grid">
-                <p>Cargando ranking...</p>
-            </div>
-        </main>
-
-        <!-- MODAL DE SUBMIT -->
-        <div id="submit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 21, 0.95); z-index: 1000; justify-content: center; align-items: center;">
-            <div style="background: var(--bg-card); padding: 2rem; border-radius: 10px; width: 90%; max-width: 450px; border: 1px solid var(--primary-color);">
-                <h2 style="margin-bottom: 1rem;">Sube tu Récord</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Los moderadores revisarán tu video antes de asignar los puntos a tu perfil.</p>
-                
-                <input type="text" id="submit-lvl-name" placeholder="Nombre del Nivel (Ej. Kyouki)" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 5px; border: none; background: #2a2a35; color: white;">
-                
-                <input type="text" id="submit-lvl-id" placeholder="ID del Nivel" style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 5px; border: none; background: #2a2a35; color: white;">
-                
-                <input type="url" id="submit-video-url" placeholder="Link del video (YouTube/Medal)" style="width: 100%; padding: 0.8rem; margin-bottom: 1.5rem; border-radius: 5px; border: none; background: #2a2a35; color: white;">
-                
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-cancel-submit" class="btn-outline" style="flex: 1; margin: 0;">Cancelar</button>
-                    <button id="btn-send-submit" class="btn-primary" style="flex: 1;">Enviar a Revisión</button>
-                </div>
-                
-                <p id="submit-msg" style="margin-top: 1rem; font-size: 0.9rem; text-align: center;"></p>
+        
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-bar" placeholder="Buscar jugador...">
             </div>
         </div>
 
-        <!-- Scripts (Agregaremos uno nuevo al final) -->
-        <script type="module" src="js/config.js"></script>
-        <script type="module" src="js/auth.js"></script>
-        <script type="module" src="js/db.js"></script>
-        <script type="module" src="js/Submit.js"></script> 
-    </body>
+        <!-- Contenedor donde se inyectan las tarjetas -->
+        <div id="ranking-container" class="ranking-grid">
+            <p style="text-align: center; color: var(--text-muted);">Cargando ranking...</p>
+        </div>
+    </main>
+
+    <!-- MODAL DE SUBMIT -->
+    <div id="submit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 1rem;">Sube tu Récord</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Los moderadores revisarán tu video antes de asignar los puntos a tu perfil.</p>
+            
+            <input type="text" id="submit-lvl-name" placeholder="Nombre del Nivel (Ej. Kyouki)" class="input-field">
+            <input type="text" id="submit-lvl-id" placeholder="ID del Nivel" class="input-field">
+            <input type="url" id="submit-video-url" placeholder="Link del video (YouTube/Medal)" class="input-field" style="margin-bottom: 1.5rem;">
+            
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-cancel-submit" class="btn-outline" style="flex: 1;">Cancelar</button>
+                <button id="btn-send-submit" class="btn-primary" style="flex: 1;">Enviar a Revisión</button>
+            </div>
+            
+            <p id="submit-msg" style="margin-top: 1rem; font-size: 0.9rem; text-align: center;"></p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/db.js"></script>
+    <script type="module" src="js/Submit.js"></script>
+    <script type="module" src="js/ui.js"></script>
+</body>
 </html>

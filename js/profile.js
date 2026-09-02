@@ -16,7 +16,7 @@ let perfilDueno = null;
 // 2. CARGA PRINCIPAL DEL PERFIL
 // ==========================================
 async function cargarPerfilCompleto() {
-    if (!targetUid) return profileBanner.innerHTML = "<p style='color:red;'>Usuario no especificado.</p>";
+    if (!targetUid) return profileBanner.innerHTML = "<p style='color: var(--color-error);'>Usuario no especificado.</p>";
 
     let isMod = false;
     const { data: { user: sessionUser } } = await supabase.auth.getUser();
@@ -34,22 +34,24 @@ async function cargarPerfilCompleto() {
         .eq('uid', targetUid)
         .maybeSingle();
 
-    if (errPerfil || !perfil) return profileBanner.innerHTML = "<p style='color:red;'>Jugador no encontrado.</p>";
+    if (errPerfil || !perfil) return profileBanner.innerHTML = "<p style='color: var(--color-error);'>Jugador no encontrado.</p>";
     
-    perfilDueno = perfil; // Guardamos los datos para el formulario manual
+    perfilDueno = perfil; 
 
     // Botón de Mod inyectado en el banner
     const modBannerBtn = isMod ? `
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #333;">
-            <button id="btn-mod-add-record" class="btn-primary" style="background-color: #e0a800; color: black; font-size: 0.8rem; padding: 5px 15px;">+ Añadir Récord Manual</button>
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-default);">
+            <button id="btn-mod-add-record" class="btn-primary btn-primary--mod" style="font-size: 0.8rem; padding: 5px 15px;">+ Añadir Récord Manual</button>
         </div>
     ` : '';
+
+    const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
 
     profileBanner.innerHTML = `
         <img src="${perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="profile-avatar-giant">
         <div style="flex: 1;">
-            <h1 style="margin: 0; font-size: 2.5rem;">${perfil.gd_username}</h1>
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; color: #5865F2;">
+            <h1 style="margin: 0; font-size: 2.5rem; color: var(--text-main);">${perfil.gd_username}</h1>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; color: var(--color-discord);">
                 <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
                     <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.15ZM42.68,65.27C36.67,65.27,31.7,59.65,31.7,52.7c0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C53.66,59.65,48.8,65.27,42.68,65.27Zm41.85,0c-6.01,0-10.98-5.62-10.98-12.58,0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C95.51,59.65,90.65,65.27,84.53,65.27Z"/>
                 </svg>
@@ -60,11 +62,11 @@ async function cargarPerfilCompleto() {
         <div class="profile-stats-container">
             <div class="stat-box">
                 <span class="stat-label">Puntos Actuales</span>
-                <span class="stat-value" style="color: #ff3333;">${perfil.puntos_totales || 0}</span>
+                <span class="stat-value stat-value--red">${perfil.puntos_totales || 0}</span>
             </div>
             <div class="stat-box">
                 <span class="stat-label">Estado</span>
-                <span class="nav-role" style="font-size: 1rem; padding: 5px 15px;">${perfil.rol.toUpperCase()}</span>
+                <span class="${roleClass}" style="font-size: 1rem; padding: 5px 15px;">${perfil.rol.toUpperCase()}</span>
             </div>
         </div>
     `;
@@ -77,8 +79,8 @@ async function cargarPerfilCompleto() {
         .order('puntos_asignados', { ascending: false });
 
     if (!records || records.length === 0) {
-        recordsGrid.innerHTML = "<p style='color: #888;'>Este jugador aún no tiene récords registrados.</p>";
-        return inicializarEventosMod(isMod); // Cargar eventos aunque no haya niveles
+        recordsGrid.innerHTML = "<p style='color: var(--text-muted);'>Este jugador aún no tiene récords registrados.</p>";
+        return inicializarEventosMod(isMod);
     }
 
     recordsGrid.innerHTML = records.map((record, index) => {
@@ -91,8 +93,8 @@ async function cargarPerfilCompleto() {
 
         const modControls = isMod ? `
             <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; width: 100%;">
-                <button class="btn-outline btn-edit-record" data-id="${record.submit_id}" data-pts="${record.puntos_asignados}" style="border-color: #e0a800; color: #e0a800; padding: 2px 10px; font-size: 0.75rem;">Editar Puntos</button>
-                <button class="btn-outline btn-delete-record" data-id="${record.submit_id}" style="border-color: #dc3545; color: #dc3545; padding: 2px 10px; font-size: 0.75rem;">Borrar</button>
+                <button class="btn-outline btn-edit-record" data-id="${record.submit_id}" data-pts="${record.puntos_asignados}" style="border-color: var(--color-mod-alt); color: var(--color-mod-alt); padding: 2px 10px; font-size: 0.75rem;">Editar</button>
+                <button class="btn-outline btn-outline--danger btn-delete-record" data-id="${record.submit_id}" style="padding: 2px 10px; font-size: 0.75rem;">Borrar</button>
             </div>
         ` : '';
 
@@ -101,11 +103,11 @@ async function cargarPerfilCompleto() {
                 <iframe class="record-video" src="${embedUrl}" allowfullscreen></iframe>
                 <div class="record-info">
                     <div>
-                        <h3 style="margin: 0; font-size: 1.1rem;">${record.nivel_nombre}</h3>
-                        <span style="color: #888; font-size: 0.8rem;">ID: ${record.nivel_id}</span>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">${record.nivel_nombre}</h3>
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">ID: ${record.nivel_id}</span>
                     </div>
                     <div style="text-align: right;">
-                        <span style="color: #00d2ff; font-weight: bold; font-size: 1.1rem;">${record.puntos_asignados} PTS</span>
+                        <span style="color: var(--color-accent); font-weight: bold; font-size: 1.1rem;">${record.puntos_asignados} PTS</span>
                         <br>
                         <button class="btn-outline btn-comentarios" data-submitid="${record.submit_id}" data-lvlname="${record.nivel_nombre}" style="padding: 2px 10px; font-size: 0.75rem; margin-top: 5px;">Comentarios</button>
                     </div>
@@ -117,8 +119,8 @@ async function cargarPerfilCompleto() {
         if (index === 2 && records.length > 3) {
             return cardHTML + `
                 <div style="grid-column: 1 / -1; margin: 30px 0 10px 0;">
-                    <hr style="border: none; border-top: 1px solid #333;">
-                    <p style="text-align: center; color: #666; font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase;">
+                    <hr style="border: none; border-top: 1px solid var(--border-default);">
+                    <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase;">
                         Récords antiguos / Historial
                     </p>
                 </div>
@@ -158,7 +160,7 @@ btnCloseComments.addEventListener('click', () => {
 
 async function abrirModalComentarios() {
     commentsModal.style.display = 'flex';
-    commentsList.innerHTML = '<p style="color: #888; text-align: center;">Cargando...</p>';
+    commentsList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Cargando...</p>';
     likeCountDisplay.textContent = '...';
 
     const { count: likes } = await supabase.from('submit_likes').select('*', { count: 'exact', head: true }).eq('submit_id', currentSubmitId);
@@ -168,11 +170,11 @@ async function abrirModalComentarios() {
     if (user) {
         const { data: miLike } = await supabase.from('submit_likes').select('id').eq('submit_id', currentSubmitId).eq('user_uid', user.id).maybeSingle();
         if (miLike) {
-            btnLikeSubmit.style.backgroundColor = '#ff3333';
+            btnLikeSubmit.style.backgroundColor = 'var(--color-brand-red)';
             btnLikeSubmit.style.color = 'white';
         } else {
             btnLikeSubmit.style.backgroundColor = 'transparent';
-            btnLikeSubmit.style.color = '#ff3333';
+            btnLikeSubmit.style.color = 'var(--color-brand-red)';
         }
     }
 
@@ -183,7 +185,7 @@ async function abrirModalComentarios() {
         .order('creado_en', { ascending: true });
 
     if (!comentarios || comentarios.length === 0) {
-        commentsList.innerHTML = '<p style="color: #888; text-align: center;">Sé el primero en comentar.</p>';
+        commentsList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Sé el primero en comentar.</p>';
         return;
     }
 
@@ -191,9 +193,9 @@ async function abrirModalComentarios() {
         <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
                 <img src="${com.usuarios.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 5px; object-fit: cover;">
-                <span style="font-weight: bold; color: var(--primary-color); font-size: 0.9rem;">${com.usuarios.gd_username}</span>
+                <span style="font-weight: bold; color: var(--color-discord); font-size: 0.9rem;">${com.usuarios.gd_username}</span>
             </div>
-            <p style="margin: 0; font-size: 0.9rem; color: #eee; line-height: 1.4;">${com.texto}</p>
+            <p style="margin: 0; font-size: 0.9rem; color: var(--text-main); line-height: 1.4;">${com.texto}</p>
         </div>
     `).join('');
 }
@@ -248,39 +250,21 @@ async function recalcularPerfil(uid) {
 function inicializarEventosMod(isMod) {
     if (!isMod) return;
 
-    // A. Inyectar el HTML del formulario Modal para añadir récords manualmente
-    const modalFormHTML = `
-        <div id="mod-add-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 17, 21, 0.95); z-index: 2000; justify-content: center; align-items: center;">
-            <div style="background: var(--bg-card); padding: 2rem; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid #e0a800; display: flex; flex-direction: column; gap: 15px;">
-                <h2 style="margin: 0; color: #e0a800;">Añadir Récord (MOD)</h2>
-                <input type="text" id="mod-lvl-name" placeholder="Nombre del Nivel" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
-                <input type="number" id="mod-lvl-id" placeholder="ID del Nivel" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
-                <input type="url" id="mod-lvl-video" placeholder="URL del Video (YouTube)" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
-                <input type="number" id="mod-lvl-pts" placeholder="Puntos a otorgar" class="search-bar" style="width: 100%; box-sizing: border-box; border-radius: 5px;">
-                
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                    <button id="btn-mod-cancel" class="btn-outline">Cancelar</button>
-                    <button id="btn-mod-submit" class="btn-primary" style="background-color: #e0a800; color: black;">Guardar Récord</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalFormHTML);
-
+    // A. El HTML del modal ahora vive nativamente en profile.html
     const modModal = document.getElementById('mod-add-modal');
     
     // Evento para abrir el modal
-    document.getElementById('btn-mod-add-record').addEventListener('click', () => {
+    document.getElementById('btn-mod-add-record')?.addEventListener('click', () => {
         modModal.style.display = 'flex';
     });
 
     // Evento para cerrar el modal
-    document.getElementById('btn-mod-cancel').addEventListener('click', () => {
+    document.getElementById('btn-mod-cancel')?.addEventListener('click', () => {
         modModal.style.display = 'none';
     });
 
     // B. Lógica para guardar el récord manualmente
-    document.getElementById('btn-mod-submit').addEventListener('click', async (e) => {
+    document.getElementById('btn-mod-submit')?.addEventListener('click', async (e) => {
         const name = document.getElementById('mod-lvl-name').value.trim();
         const id = document.getElementById('mod-lvl-id').value.trim();
         const video = document.getElementById('mod-lvl-video').value.trim();
