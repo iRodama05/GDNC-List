@@ -1,0 +1,77 @@
+/* STREAMING_CHUNK: Contenedores de modales... /
+/ =========================================
+MODALES Y SUS ANIMACIONES
+========================================= */
+
+.modal-overlay {
+display: none; /* Controlado por JS */
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(17, 17, 21, 0.95);
+z-index: var(--z-modal);
+justify-content: center;
+align-items: center;
+animation: fadeInOverlay 0.3s ease-out forwards;
+}
+
+.modal-content {
+background: var(--bg-surface);
+padding: 2rem;
+border-radius: 10px;
+text-align: center;
+width: 90%;
+max-width: 450px;
+border: 1px solid var(--color-discord);
+animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-content--warning {
+border-color: var(--color-mod-alt);
+}
+
+/* STREAMING_CHUNK: Animaciones de modales... /
+/ KEYFRAMES PARA LAS ANIMACIONES DE ENTRADA */
+@keyframes fadeInOverlay {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+
+@keyframes popInModal {
+from {
+opacity: 0;
+transform: translateY(30px) scale(0.9);
+}
+to {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+}
+
+/* ANIMACIONES DE SALIDA PARA MODALES */
+.modal-overlay.is-closing {
+animation: fadeOutOverlay 0.3s ease-in forwards;
+}
+
+.modal-overlay.is-closing .modal-content {
+animation: popOutModal 0.3s ease-in forwards;
+}
+
+/* STREAMING_CHUNK: Keyframes de salida... */
+@keyframes fadeOutOverlay {
+from { opacity: 1; }
+to { opacity: 0; }
+}
+
+@keyframes popOutModal {
+from {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+to {
+opacity: 0;
+transform: translateY(30px) scale(0.9);
+}
+}

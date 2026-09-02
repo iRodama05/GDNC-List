@@ -1,0 +1,42 @@
+/* STREAMING_CHUNK: Animaciones en cascada y transiciones de busqueda... /
+/ =========================================
+ANIMACIONES UI / UX GENERALES
+========================================= */
+
+/* Estado inicial de los elementos que vamos a animar (Intersection Observer) */
+.animate-on-scroll {
+opacity: 0;
+transform: translateY(30px);
+}
+
+/* La clase que JS agregará cuando el elemento sea visible */
+.is-visible {
+animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+0% {
+opacity: 0;
+transform: translateY(30px);
+}
+100% {
+opacity: 1;
+transform: translateY(0);
+}
+}
+
+/* Animación de salida para el buscador */
+.fade-out {
+animation: fadeOutDown 0.3s ease-in forwards;
+}
+
+@keyframes fadeOutDown {
+0% {
+opacity: 1;
+transform: translateY(0);
+}
+100% {
+opacity: 0;
+transform: translateY(15px);
+}
+}
