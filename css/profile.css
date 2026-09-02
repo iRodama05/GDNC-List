@@ -1,108 +1,109 @@
+/* --- CONTENEDOR PRINCIPAL PERFIL --- */
+.profile-container {
+  max-width: 1150px;
+  width: 95%;
+  margin: 0 auto;
+}
+
 /* --- BANNER SUPERIOR --- */
 .profile-banner {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    background: linear-gradient(135deg, rgba(30,30,40,1) 0%, rgba(138,43,226,0.2) 100%);
-    border: 1px solid #444;
-    border-radius: 15px;
-    padding: 30px;
-    margin-top: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: linear-gradient(135deg, rgba(30, 30, 40, 1) 0%, rgba(138, 43, 226, 0.2) 100%);
+  border: 1px solid var(--border-light);
+  border-radius: 15px;
+  padding: 30px;
+  margin-top: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .profile-avatar-giant {
-    width: 100px;
-    height: 100px;
-    border-radius: 15px;
-    border: 2px solid #00d2ff;
-    object-fit: cover;
+  width: 100px;
+  height: 100px;
+  border-radius: 15px;
+  border: 2px solid var(--color-accent);
+  object-fit: cover;
 }
 
 .profile-stats-container {
-    display: flex;
-    gap: 40px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
 }
 
 .stat-box {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-label {
-    font-size: 0.7rem;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
 }
 
 .stat-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: white;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.stat-value--red {
+  color: var(--color-brand-red);
 }
 
 /* --- CUADRÍCULA DE RÉCORDS --- */
 .records-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
 }
 
 .record-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid #333;
-    display: flex;
-    flex-direction: column;
+  background: var(--bg-surface);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
 }
 
 .record-video {
-    width: 100%;
-    aspect-ratio: 16/9;
-    border: none;
-    background: #000;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: none;
+  background: #000;
 }
 
 .record-info {
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* --- CONTENEDOR ANCHO PARA EL PERFIL --- */
-.profile-container {
-    max-width: 1150px; /* Espacio exacto para 3 videos de 320px + márgenes */
-    width: 95%;
-    margin: 0 auto;
-}
-
-/* --- PERFIL EN MÓVIL --- */
+/* --- RESPONSIVE MÓVIL --- */
 @media (max-width: 768px) {
-    /* Banner: Foto arriba, stats abajo */
-    .profile-banner {
-        flex-direction: column;
-        text-align: center;
-        gap: 20px;
-        padding: 20px;
-    }
+  .profile-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding: 20px;
+  }
 
-    .profile-stats-container {
-        justify-content: center;
-        width: 100%;
-    }
+  .profile-stats-container {
+    justify-content: center;
+    width: 100%;
+  }
 
-    /* Alinear icono de Discord al centro */
-    .profile-banner div[style*="display: flex"] {
-        justify-content: center;
-    }
+  .profile-banner div {
+    justify-content: center;
+  }
 
-    /* Cuadrícula: 1 video por fila */
-    .records-grid {
-        grid-template-columns: 1fr;
-    }
+  .records-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,135 +1,49 @@
-:root {
-    --bg-dark: #111115;
-    --bg-card: #1e1e24;
-    --primary-color: #5865F2; /* Color de Discord */
-    --text-main: #ffffff;
-    --text-muted: #a0a0a0;
+/* --- COLORES BASE Y SUPERFICIES --- */
+:root {--bg-base: #111115;--bg-surface: #1e1e24;--bg-surface-hover: #26262e;--bg-surface-alt: #1a1a20;--bg-input: #2a2a35;
+
+/* --- COLORES DE MARCA Y ACENTOS --- */
+--color-discord: #5865F2;
+--color-brand-green: #28a745;
+--color-brand-green-alt: #20c997;
+--color-brand-red: #dc3545;
+--color-accent: #00d2ff;
+
+/* --- COLORES DE ESTADO Y ROLES --- */
+--color-mod: #ffcc00;
+--color-mod-alt: #e0a800;
+--color-success: #43b581;
+--color-error: #d9534f;
+--color-warning: #ffd700;
+
+/* --- TIPOGRAFÍA (Colores) --- */
+--text-main: #ffffff;
+--text-muted: #888888;
+--text-placeholder: #555555;
+
+/* --- BORDES --- */
+--border-default: #333333;
+--border-light: #444444;
+
+/* --- RANGOS (Top 3) --- */
+--color-rank-1: #ffd700;
+--color-rank-2: #c0c0c0;
+--color-rank-3: #cd7f32;
+
+/* --- CAPAS (Z-Index) --- */
+--z-nav: 100;
+--z-modal: 1000;
+--z-modal-top: 2000;
+--z-toast: 9999;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-}
-
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: var(--bg-card);
-    border-bottom: 2px solid #2a2a35;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
-}
-
-.btn-primary:hover {
-    filter: brightness(1.1);
-}
-
-/* --- ESTILOS DEL PERFIL EN EL NAVBAR --- */
-.nav-user-profile {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.nav-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 8px; /* Ligeramente redondeado como en la imagen */
-    object-fit: cover;
-}
-
-.nav-user-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.nav-gd-name {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: white;
-    line-height: 1.1;
-}
-
-.nav-role {
-    font-size: 0.65rem;
-    color: #00d2ff;
-    border: 1px solid #00d2ff;
-    padding: 2px 5px;
-    border-radius: 3px;
-    margin-top: 3px;
-    display: inline-block;
-    width: fit-content;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-/* Color dorado para los moderadores */
-.nav-role.mod {
-    color: #ffcc00;
-    border-color: #ffcc00;
-}
-
-.nav-points {
-    background-color: rgba(255, 50, 50, 0.1);
-    border: 1px solid #ff3333;
-    color: #ff3333;
-    padding: 5px 12px;
-    border-radius: 20px;
-    display: flex;
-    align-items: baseline;
-    gap: 5px;
-    margin-left: 10px;
-}
-
-.points-number {
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.points-label {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    font-weight: bold;
-}
-
-.btn-outline {
-    background: transparent;
-    color: var(--text-main);
-    border: 1px solid #444;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
-    margin-left: 10px;
-}
-
-.btn-outline:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #888;
+  background-color: var(--bg-base);
+  color: var(--text-main);
 }

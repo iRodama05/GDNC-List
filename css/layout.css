@@ -1,148 +1,151 @@
-/* Importamos la fuente moderna para el logo */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,800;1,800&display=swap');
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
 
 /* --- NAVBAR PRINCIPAL --- */
 .navbar {
-    display: flex;
-    justify-content: space-between; /* Separa el logo de los botones */
-    align-items: center;
-    padding: 12px 40px;
-    background-color: rgba(20, 20, 25, 0.95);
-    border-bottom: 1px solid #333;
-    backdrop-filter: blur(10px); /* Efecto cristal moderno */
-    position: sticky;
-    top: 0;
-    z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  background-color: rgba(30, 30, 36, 0.95); /* Aproximación a var(--bg-surface) con opacidad */
+  border-bottom: 1px solid var(--border-default);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
 }
 
-/* --- ESTILOS DEL LOGO GDNC --- */
+/* --- LOGO --- */
 .logo {
-    font-family: 'Poppins', sans-serif;
-    font-size: 2rem;
-    font-weight: 800;
-    font-style: italic;
-    text-decoration: none;
-    letter-spacing: 2px;
-    display: flex;
-    align-items: baseline;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5); /* Le da profundidad */
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  font-style: italic;
+  text-decoration: none;
+  letter-spacing: 2px;
+  display: flex;
+  align-items: baseline;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* La paleta de colores inspirada en tu servidor */
-.logo-g { color: #28a745; } /* Verde vivo */
-.logo-dn { color: #ffffff; } /* Blanco puro */
-.logo-c { color: #dc3545; } /* Rojo intenso */
+.logo-g {
+  color: var(--color-brand-green);
+}
+
+.logo-dn {
+  color: var(--text-main);
+}
+
+.logo-c {
+  color: var(--color-brand-red);
+}
 
 .logo-list {
-    color: #aaaaaa;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-left: 8px;
-    font-style: normal;
-    letter-spacing: 0;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-left: 8px;
+  font-style: normal;
+  letter-spacing: 0;
 }
 
-/* --- CONTENEDOR DERECHO (Botones y Perfil) --- */
+/* --- SECCIÓN DE ACCIONES (NAVBAR) --- */
 .nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 25px; /* Separación entre el botón de Submit y el Perfil */
+  display: flex;
+  align-items: center;
+  gap: 25px;
 }
 
-/* --- BOTÓN DE SUBMIT EN EL NAVBAR --- */
-.btn-submit {
-    background: linear-gradient(90deg, #28a745, #20c997); /* Degradado verde */
-    color: white;
-    border: none;
-    padding: 0.6rem 1.5rem;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 0.95rem;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3); /* Resplandor */
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
-}
-
-/* --- BARRA DE BÚSQUEDA (INDEX) --- */
-.search-bar {
-    background-color: #1a1a20;
-    border: 1px solid #333;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 25px;
-    width: 280px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: all 0.3s ease;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.search-bar:focus {
-    border-color: #28a745; /* Verde de tu logo */
-    box-shadow: 0 0 10px rgba(40, 167, 69, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
-    width: 300px; /* Se expande un poco al hacer clic (efecto dinámico) */
-}
-
-.search-bar::placeholder {
-    color: #555;
-    font-style: italic;
-}
-
-/* Ocultar botón hamburguesa en escritorio por defecto */
 .menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.8rem;
-    cursor: pointer;
-    padding: 5px;
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 5px;
 }
 
-/* =========================================
-   COMPATIBILIDAD MÓVIL (PANTALLAS < 768px)
-   ========================================= */
+/* --- PERFIL EN NAVBAR --- */
+.nav-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-user-profile a {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.nav-user-profile a:hover {
+  opacity: 0.8;
+}
+
+.nav-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.nav-user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nav-gd-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  line-height: 1.1;
+}
+
+/* --- MEDIA QUERIES --- */
 @media (max-width: 768px) {
-    .navbar {
-        flex-direction: row; /* Mantiene el logo y el botón en la misma línea */
-        justify-content: space-between;
-        flex-wrap: wrap; /* Permite que el menú caiga abajo */
-        padding: 15px 20px;
-    }
+  .navbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 15px 20px;
+  }
 
-    .menu-toggle {
-        display: block; /* Mostramos la hamburguesa */
-    }
+  .menu-toggle {
+    display: block;
+  }
 
-    /* Transformamos el contenedor derecho en un Menú Dropdown oculto */
-    .nav-actions {
-        display: none; /* Oculto por defecto */
-        width: 100%;
-        flex-direction: column;
-        background-color: #1a1a20;
-        padding: 20px;
-        border-radius: 10px;
-        margin-top: 15px;
-        border: 1px solid #333;
-        align-items: center;
-        gap: 15px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
+  .nav-actions {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    background-color: var(--bg-surface-alt);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border: 1px solid var(--border-default);
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  }
 
-    /* Esta clase se activará con JavaScript para mostrar el menú */
-    .nav-actions.active {
-        display: flex;
-    }
+  .nav-actions.active {
+    display: flex;
+  }
 
-    /* Hacemos que los elementos del perfil se apilen en vertical dentro del menú */
-    .nav-user-profile {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
+  .nav-user-profile {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
 }

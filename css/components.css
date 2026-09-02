@@ -1,130 +1,343 @@
-/* --- CONTENEDOR DEL RANKING --- */
-.ranking-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
+/* ========================================= BOTONES ========================================= */
+.btn-primary {
+  background-color: var(--color-discord);
+  color: var(--text-main);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: filter 0.2s;
 }
 
-/* --- TARJETA BASE --- */
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-primary--mod {
+  background-color: var(--color-mod);
+  color: #000;
+}
+
+.btn-primary--success {
+  background-color: var(--color-success);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--text-muted);
+}
+
+.btn-outline--danger {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.btn-submit {
+  background: linear-gradient(90deg, var(--color-brand-green), var(--color-brand-green-alt));
+  color: var(--text-main);
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+}
+
+/* ========================================= INPUTS Y BÚSQUEDA ========================================= */
+
+.search-bar {
+  background-color: var(--bg-surface-alt);
+  border: 1px solid var(--border-default);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 25px;
+  width: 280px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.search-bar:focus {
+  border-color: var(--color-brand-green);
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 300px;
+}
+
+.search-bar::placeholder {
+  color: var(--text-placeholder);
+  font-style: italic;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  border: none;
+  background: var(--bg-input);
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+/* ========================================= ETIQUETAS (BADGES) Y PUNTOS ========================================= */
+
+.nav-role {
+  font-size: 0.65rem;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  padding: 2px 5px;
+  border-radius: 3px;
+  margin-top: 3px;
+  display: inline-block;
+  width: fit-content;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.nav-role--mod {
+  color: var(--color-mod);
+  border-color: var(--color-mod);
+}
+
+.points-badge {
+  background-color: rgba(255, 50, 50, 0.1);
+  border: 1px solid var(--color-brand-red);
+  color: var(--color-brand-red);
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.points-badge__number {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.points-badge__label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  font-weight: bold;
+}
+
+/* ========================================= MODALES (NUEVAS CLASES BASE) ========================================= */
+
+.modal-overlay {
+  display: none; /* Controlado por JS */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(17, 17, 21, 0.95);
+  z-index: var(--z-modal);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: var(--bg-surface);
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 450px;
+  border: 1px solid var(--color-discord);
+}
+
+.modal-content--warning {
+  border-color: var(--color-mod-alt);
+}
+
+/* ========================================= TARJETAS DE JUGADORES (RANKING Y PERFIL) ========================================= */
+
+.ranking-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
 .player-card {
-    display: flex;
-    align-items: center;
-    background-color: var(--bg-card);
-    padding: 15px 25px;
-    border-radius: 12px;
-    border-left: 5px solid transparent; /* Para los colores del top */
-    transition: transform 0.2s, background-color 0.2s;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-surface);
+  padding: 15px 25px;
+  border-radius: 12px;
+  border-left: 5px solid transparent;
+  transition: transform 0.2s, background-color 0.2s;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .player-card:hover {
-    background-color: #26262e;
-    transform: translateX(5px);
+  background-color: var(--bg-surface-hover);
+  transform: translateX(5px);
 }
 
-/* Exclusividad del Top 3 */
-.rank-first { border-left-color: #ffd700; background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, var(--bg-card) 20%); }
-.rank-second { border-left-color: #c0c0c0; background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, var(--bg-card) 20%); }
-.rank-third { border-left-color: #cd7f32; background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, var(--bg-card) 20%); }
-
-.rank-number {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--text-muted);
-    min-width: 50px;
+/* Ranks */
+.player-card--rank-1 {
+  border-left-color: var(--color-rank-1);
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, var(--bg-surface) 20%);
 }
 
-.rank-first .rank-number { color: #ffd700; }
-.rank-second .rank-number { color: #c0c0c0; }
-.rank-third .rank-number { color: #cd7f32; }
-
-/* Avatar e Info */
-.player-avatar-large {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    object-fit: cover;
+.player-card--rank-2 {
+  border-left-color: var(--color-rank-2);
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, var(--bg-surface) 20%);
 }
 
-.player-info-main {
-    flex: 1; /* Toma el espacio disponible */
+.player-card--rank-3 {
+  border-left-color: var(--color-rank-3);
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, var(--bg-surface) 20%);
 }
 
-.player-gd-title {
-    font-size: 1.3rem;
-    margin-bottom: 2px;
+.player-card__rank-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-muted);
+  min-width: 50px;
 }
 
-.player-discord-subtitle {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.player-card--rank-1 .player-card__rank-number {
+  color: var(--color-rank-1);
 }
 
-/* Sección de Hardests */
-.player-hardests-container {
-    flex: 2; /* Toma un poco más de espacio */
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    border-left: 1px solid #333;
-    padding-left: 20px;
+.player-card--rank-2 .player-card__rank-number {
+  color: var(--color-rank-2);
+}
+
+.player-card--rank-3 .player-card__rank-number {
+  color: var(--color-rank-3);
+}
+
+/* Avatar & Info */
+.player-card__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.player-card__info {
+  flex: 1;
+}
+
+.player-card__title {
+  font-size: 1.3rem;
+  margin-bottom: 3px;
+}
+
+.player-card__discord {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-discord);
+}
+
+.player-card__discord-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Hardests */
+.player-card__hardests {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-left: 1px solid var(--border-default);
+  padding-left: 20px;
 }
 
 .hardest-item {
-    display: flex;
-    justify-content: space-between;
-    background-color: rgba(255,255,255,0.03);
-    padding: 3px 10px;
-    border-radius: 5px;
-    font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 0.85rem;
 }
 
-.lvl-pts { color: #00d2ff; font-weight: bold; }
-.empty-hardests { color: #666; font-style: italic; font-size: 0.9rem; }
+.hardest-item__pts {
+  color: var(--color-accent);
+  font-weight: bold;
+}
 
-/* Puntos Totales */
-.player-total-points {
-    display: flex;
+.hardest-item__empty {
+  color: var(--text-placeholder);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Puntos Card */
+.player-card__points {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(255, 50, 50, 0.1);
+  border: 1px solid var(--color-brand-red);
+  color: var(--color-brand-red);
+  padding: 10px 20px;
+  border-radius: 8px;
+  min-width: 100px;
+}
+
+.player-card__points-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.player-card__points-label {
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Tarjetas Móvil */
+@media (max-width: 768px) {
+  .player-card {
     flex-direction: column;
     align-items: center;
-    background-color: rgba(255, 50, 50, 0.1);
-    border: 1px solid #ff3333;
-    color: #ff3333;
-    padding: 10px 20px;
-    border-radius: 8px;
-    min-width: 100px;
-}
+    text-align: center;
+    gap: 15px;
+    padding: 20px;
+    position: relative;
+  }
 
-.pts-value { font-size: 1.5rem; font-weight: bold; }
-.pts-label { font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; }
+  .player-card__rank-number {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    margin: 0;
+  }
 
-/* --- TARJETAS DE JUGADORES EN MÓVIL --- */
-@media (max-width: 768px) {
-    .player-card {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 15px;
-        padding: 20px;
-        position: relative;
-    }
+  .player-card__hardests {
+    display: none;
+  }
 
-    /* Mover el número de rango a la esquina superior izquierda */
-    .rank-number {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        margin: 0;
-    }
-
-    /* Ocultar los top hardests en celular para ahorrar espacio visual */
-    .player-hardests-container {
-        display: none; 
-    }
-
-    /* Alinear contenedor de Discord */
-    .player-info-main div {
-        justify-content: center;
-    }
+  .player-card__discord {
+    justify-content: center;
+  }
 }
