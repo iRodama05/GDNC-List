@@ -51,11 +51,24 @@ async function cargarPendientes() {
                 <a href="${submit.video_url}" target="_blank" class="btn-primary" style="text-decoration:none; display: inline-flex; align-items: center; height: fit-content;">Ver Video</a>
             </div>
             
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">Motivo / Nota del Mod (Visible para el jugador):</label>
+                <div style="display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap;">
+                    <select id="reason-${submit.submit_id}" class="input-field" style="flex: 1; margin: 0; min-width: 200px;">
+                        <option value="Aprobado sin problemas">Aprobado sin problemas</option>
+                        <option value="Video privado o caído">Video privado o caído</option>
+                        <option value="Falta de clics / Raw footage no válido">Falta de clics / Raw footage no válido</option>
+                        <option value="Uso de hacks o botting detectado">Uso de hacks o botting detectado</option>
+                        <option value="Nivel o ID incorrecto">Nivel o ID incorrecto</option>
+                        <option value="Otro">Otro (Especifique al lado)</option>
+                    </select>
+                    <input type="text" id="details-${submit.submit_id}" class="input-field" placeholder="Detalles (Opcional)..." style="flex: 1; margin: 0; min-width: 200px;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; margin-top: 10px;">
                 <input type="number" id="pts-${submit.submit_id}" class="input-field" placeholder="Puntos a otorgar" style="width: 150px; margin-bottom: 0;">
-                
                 <button class="btn-primary btn-primary--success btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}">Aceptar Récord</button>
-                
                 <button class="btn-outline btn-outline--danger btn-reject" data-id="${submit.submit_id}">Rechazar</button>
             </div>
         `;
@@ -70,14 +83,25 @@ function asignarEventos() {
     document.querySelectorAll('.btn-reject').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const submitId = e.target.getAttribute('data-id');
+            const selectReason = document.getElementById(`reason-${submitId}`).value;
+            const detailReason = document.getElementById(`details-${submitId}`).value.trim();
+            
+            let notaFinal = selectReason;
+            if (selectReason === 'Otro' || detailReason !== '') {
+                notaFinal = detailReason !== '' ? detailReason : selectReason;
+            }
+
             if(confirm("¿Seguro que quieres rechazar este récord?")) {
-                await supabase.from('submits').update({ estado: 'rechazado' }).eq('submit_id', submitId);
+                e.target.disabled = true;
+                e.target.textContent = "...";
+                // Marcamos leido = false para disparar la notificación
+                await supabase.from('submits').update({ estado: 'rechazado', mod_nota: notaFinal, leido: false }).eq('submit_id', submitId);
                 cargarPendientes();
             }
         });
     });
 
-    // Evento Aceptar (Lógica de Auto-Corrección Top 3)
+    // Evento Aceptar
     document.querySelectorAll('.btn-accept').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const submitId = e.target.getAttribute('data-id');
@@ -85,18 +109,26 @@ function asignarEventos() {
             const inputPts = document.getElementById(`pts-${submitId}`).value;
             const puntosNuevos = parseInt(inputPts);
 
+            const selectReason = document.getElementById(`reason-${submitId}`).value;
+            const detailReason = document.getElementById(`details-${submitId}`).value.trim();
+            
+            let notaFinal = selectReason;
+            if (selectReason === 'Otro' || detailReason !== '') {
+                notaFinal = detailReason !== '' ? detailReason : selectReason;
+            }
+
             if (!inputPts || puntosNuevos <= 0) return alert("Debes ingresar una cantidad de puntos válida.");
 
             e.target.disabled = true;
             e.target.textContent = "Procesando...";
 
             try {
-                // 1. Actualizar el Submit primero para que ya cuente en la base de datos
+                // Actualizar el Submit (Añadimos leido = false para la bolita verde)
                 await supabase.from('submits')
-                    .update({ estado: 'aceptado', puntos_asignados: puntosNuevos })
+                    .update({ estado: 'aceptado', puntos_asignados: puntosNuevos, mod_nota: notaFinal, leido: false })
                     .eq('submit_id', submitId);
                 
-                // 2. Extraer los 3 mejores récords aceptados del jugador
+                // Extraer el top 3
                 const { data: top3Niveles } = await supabase
                     .from('submits')
                     .select('nivel_nombre, puntos_asignados')
@@ -105,16 +137,11 @@ function asignarEventos() {
                     .order('puntos_asignados', { ascending: false })
                     .limit(3);
 
-                // 3. Sumar únicamente los puntos del Top 3
+                // Calcular y formatear
                 const sumaTop3 = top3Niveles.reduce((acumulador, nivel) => acumulador + nivel.puntos_asignados, 0);
+                const nuevoTop3 = top3Niveles.map(nivel => ({ nombre: nivel.nivel_nombre, puntos: nivel.puntos_asignados }));
 
-                // 4. Formatear la lista visual para la tarjeta de ranking
-                const nuevoTop3 = top3Niveles.map(nivel => ({
-                    nombre: nivel.nivel_nombre,
-                    puntos: nivel.puntos_asignados
-                }));
-
-                // 5. Sobrescribir el perfil del usuario
+                // Sobrescribir el perfil del usuario
                 await supabase.from('usuarios')
                     .update({ puntos_totales: sumaTop3, top_3_hardests: nuevoTop3 })
                     .eq('uid', userUid);

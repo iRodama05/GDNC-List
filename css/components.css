@@ -1,4 +1,5 @@
 /* ========================================= BOTONES ========================================= */
+
 .btn-primary {
   background-color: var(--color-discord);
   color: var(--text-main);
@@ -154,6 +155,8 @@
   z-index: var(--z-modal);
   justify-content: center;
   align-items: center;
+  /* Animación del fondo oscuro */
+  animation: fadeInOverlay 0.3s ease-out forwards;
 }
 
 .modal-content {
@@ -164,10 +167,56 @@
   width: 90%;
   max-width: 450px;
   border: 1px solid var(--color-discord);
+  /* Animación de la caja principal (salto elástico) */
+  animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .modal-content--warning {
   border-color: var(--color-mod-alt);
+}
+
+/* KEYFRAMES PARA LAS ANIMACIONES */
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popInModal {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.9); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+/* =========================================
+   ANIMACIONES DE SALIDA PARA MODALES
+   ========================================= */
+.modal-overlay.is-closing {
+  animation: fadeOutOverlay 0.3s ease-in forwards;
+}
+
+.modal-overlay.is-closing .modal-content {
+  animation: popOutModal 0.3s ease-in forwards;
+}
+
+@keyframes fadeOutOverlay {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes popOutModal {
+  from { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+  to { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.9); 
+  }
 }
 
 /* ========================================= TARJETAS DE JUGADORES (RANKING Y PERFIL) ========================================= */
@@ -291,7 +340,7 @@
   font-size: 0.9rem;
 }
 
-/* Puntos Card */
+/* Puntos Card (Lista Normal) */
 .player-card__points {
   display: flex;
   flex-direction: column;
@@ -315,7 +364,7 @@
   letter-spacing: 1px;
 }
 
-/* Tarjetas Móvil */
+/* Tarjetas Móvil (Lista Normal) */
 @media (max-width: 768px) {
   .player-card {
     flex-direction: column;
@@ -341,3 +390,230 @@
     justify-content: center;
   }
 }
+
+/* ========================================= PODIO (TOP 3) ========================================= */
+
+.podium-container {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  gap: 15px;
+  align-items: end;
+  margin-bottom: 30px;
+}
+
+/* Solo toma forma de Podio en PC (pantallas grandes) y si no estamos buscando nada */
+@media (min-width: 769px) {
+  .podium-container.is-active .player-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px 20px;
+    position: relative;
+    justify-content: flex-start;
+  }
+
+  /* Movemos el número de ranking arriba como un "Pin" */
+  .podium-container.is-active .player-card__rank-number {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface);
+    padding: 5px 20px;
+    border-radius: 20px;
+    border: 2px solid;
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .podium-container.is-active .player-card--rank-1 .player-card__rank-number {
+    border-color: var(--color-rank-1);
+  }
+
+  .podium-container.is-active .player-card--rank-2 .player-card__rank-number {
+    border-color: var(--color-rank-2);
+  }
+
+  .podium-container.is-active .player-card--rank-3 .player-card__rank-number {
+    border-color: var(--color-rank-3);
+  }
+
+  /* Avatares */
+  .podium-container.is-active .player-card__avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .podium-container.is-active .player-card--rank-1 .player-card__avatar {
+    width: 105px;
+    height: 105px;
+    border: 4px solid var(--color-rank-1);
+  }
+
+  .podium-container.is-active .player-card__discord {
+    justify-content: center;
+  }
+
+  /* Cambios estéticos del podio (sin cajas rojas) */
+  .podium-container.is-active .player-card__info {
+    order: 1; /* El nombre se queda arriba */
+  }
+
+  .podium-container.is-active .player-card__points {
+    width: 100%;
+    margin-top: 15px;
+    background: transparent; /* Quitamos la caja roja */
+    border: none;
+    padding: 0;
+    order: 2; /* Subimos los puntos debajo del nombre */
+  }
+
+  /* Coloreamos los puntos según su medalla con un brillo sutil */
+  .podium-container.is-active .player-card--rank-1 .player-card__points-value {
+    color: var(--color-rank-1);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    font-size: 2.2rem;
+  }
+
+  .podium-container.is-active .player-card--rank-2 .player-card__points-value {
+    color: var(--color-rank-2);
+    text-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
+    font-size: 2rem;
+  }
+
+  .podium-container.is-active .player-card--rank-3 .player-card__points-value {
+    color: var(--color-rank-3);
+    text-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
+    font-size: 1.8rem;
+  }
+
+  .podium-container.is-active .player-card__points-label {
+    color: var(--text-muted);
+  }
+
+  /* Movemos los hardests abajo como un detalle final */
+  .podium-container.is-active .player-card__hardests {
+    border-left: none;
+    border-top: 1px solid var(--border-default);
+    padding-left: 0;
+    padding-top: 10px;
+    margin-top: 15px;
+    width: 100%;
+    order: 3; /* Lo mandamos al fondo */
+  }
+}
+
+/* --- MODO BÚSQUEDA Y MÓVIL --- */
+/* Cuando buscamos, o si estamos en celular, colapsamos el podio a una lista normal */
+.podium-container.is-searching {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-bottom: 15px; /* Iguala el margen de la lista normal */
+}
+
+@media (max-width: 768px) {
+  .podium-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 15px;
+  }
+}
+
+/* ========================================= ANIMACIONES UI / UX ========================================= */
+
+/* Estado inicial de los elementos que vamos a animar */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* La clase que JS agregará cuando el elemento sea visible */
+.is-visible {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de salida para el buscador */
+.fade-out {
+  animation: fadeOutDown 0.3s ease-in forwards;
+}
+
+@keyframes fadeOutDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+}
+
+/* =========================================
+   BUZÓN (INBOX) Y NOTIFICACIONES
+   ========================================= */
+.btn-inbox {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  padding: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.btn-inbox:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.inbox-dot {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-surface);
+  display: none;
+}
+
+.inbox-dot.is-unread { display: block; }
+.inbox-dot--green { background-color: var(--color-success); }
+.inbox-dot--yellow { background-color: var(--color-warning); }
+.inbox-dot--red { background-color: var(--color-error); }
+
+.inbox-item {
+background: rgba(255, 255, 255, 0.03);
+border-left: 4px solid var(--text-muted);
+padding: 12px 15px;
+border-radius: 5px;
+margin-bottom: 10px;
+text-align: left;
+}
+
+.inbox-item--aceptado { border-left-color: var(--color-success); }
+.inbox-item--rechazado { border-left-color: var(--color-error); }
+.inbox-item--pendiente { border-left-color: var(--color-warning); }
+
+.inbox-item__title { font-weight: bold; margin-bottom: 5px; font-size: 1rem; }
+.inbox-item__status { font-size: 0.8rem; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+.inbox-item__note { font-size: 0.85rem; color: var(--text-muted); font-style: italic; }

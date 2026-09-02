@@ -44,22 +44,56 @@ async function checkUserStatus() {
             .single();
 
         if (perfil) {
-            // Si no tiene cuenta de GD verificada, bloqueamos la pantalla
             if (!perfil.gd_username || !perfil.gd_verificado) {
                 gdSetupModal.style.display = 'flex';
             } else {
-                // Generamos las nuevas clases BEM dinámicamente
                 const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
                 const roleText = perfil.rol === 'mod' ? 'MODERADOR' : 'JUGADOR';
                 const avatar = perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-                // Botón condicional para mods
                 let modButtonHTML = '';
                 if (perfil.rol === 'mod') {
                     modButtonHTML = `<button id="btn-mod-panel" class="btn-primary btn-primary--mod" style="margin-left: 10px;">Panel Mod</button>`;
                 }
 
-                // Inyectamos todo en el NavBar con HTML limpio (sin styles en línea)
+                // Consultamos los submits del usuario ordenados por el más reciente
+                const { data: misEnvios } = await supabase.from('submits')
+                    .select('*')
+                    .eq('user_uid', user.id)
+                    .order('submit_id', { ascending: false });
+
+                let hasUnread = false;
+                let dotClass = '';
+                let inboxItemsHTML = '<p style="color: var(--text-muted); font-size:0.9rem;">No has subido ningún récord aún.</p>';
+
+                if (misEnvios && misEnvios.length > 0) {
+                    // La notificación toma el color del último envío si no está leído
+                    const ultimoEnvio = misEnvios[0];
+                    if (ultimoEnvio.leido === false) {
+                        hasUnread = true;
+                        if (ultimoEnvio.estado === 'aceptado') dotClass = 'inbox-dot--green';
+                        else if (ultimoEnvio.estado === 'rechazado') dotClass = 'inbox-dot--red';
+                        else dotClass = 'inbox-dot--yellow';
+                    }
+
+                    inboxItemsHTML = misEnvios.map(envio => {
+                        let colorText = 'var(--color-warning)';
+                        if (envio.estado === 'aceptado') colorText = 'var(--color-success)';
+                        if (envio.estado === 'rechazado') colorText = 'var(--color-error)';
+                        
+                        const notaMod = envio.mod_nota ? `<p class="inbox-item__note">" ${envio.mod_nota} "</p>` : '';
+                        
+                        return `
+                            <div class="inbox-item inbox-item--${envio.estado}">
+                                <div class="inbox-item__status" style="color: ${colorText}">${envio.estado}</div>
+                                <div class="inbox-item__title">${envio.nivel_nombre} (ID: ${envio.nivel_id})</div>
+                                ${notaMod}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 1. Inyectamos la info del perfil en la derecha (SIN el botón del buzón)
                 authSection.innerHTML = `
                     <div class="nav-user-profile">
                         <a href="profile.html?uid=${perfil.uid}">
@@ -70,7 +104,6 @@ async function checkUserStatus() {
                             </div>
                         </a>
                         
-                        <!-- Uso de la clase points-badge del CSS -->
                         <div class="points-badge" style="margin-left: 10px;">
                             <span class="points-badge__number">${perfil.puntos_totales || 0}</span>
                             <span class="points-badge__label">PTS</span>
@@ -79,7 +112,56 @@ async function checkUserStatus() {
                         <button id="btn-logout" class="btn-outline" style="margin-left: 10px;">Log Out</button>
                     </div>
                 `;
+
+                // 2. Movemos el buzón a la izquierda (junto al logo) usando JavaScript puro
+                let navBrand = document.querySelector('.nav-brand');
+                if (!navBrand) {
+                    const logo = document.querySelector('.logo');
+                    navBrand = document.createElement('div');
+                    navBrand.className = 'nav-brand';
+                    logo.parentNode.insertBefore(navBrand, logo);
+                    navBrand.appendChild(logo);
+                }
+
+                let btnInbox = document.getElementById('btn-inbox');
+                if (!btnInbox) {
+                    btnInbox = document.createElement('button');
+                    btnInbox.id = 'btn-inbox';
+                    btnInbox.className = 'btn-inbox';
+                    btnInbox.title = 'Buzón de Notificaciones';
+                    navBrand.appendChild(btnInbox);
+                }
+
+                // Inyectamos el vector SVG de campana moderna
+                btnInbox.innerHTML = `
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="inbox-dot" class="inbox-dot ${hasUnread ? 'is-unread ' + dotClass : ''}"></span>
+                `;
                 
+                // 3. Inyectamos el Modal del Buzón (Verificando que no exista ya)
+                if (!document.getElementById('inbox-modal')) {
+                    const inboxModalHTML = `
+                        <div id="inbox-modal" class="modal-overlay">
+                            <div class="modal-content" style="max-height: 80vh; display: flex; flex-direction: column;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-default); padding-bottom: 10px; margin-bottom: 15px;">
+                                    <h2 style="margin: 0; font-size: 1.5rem;">Mis Envíos</h2>
+                                    <button id="btn-close-inbox" style="background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                </div>
+                                <div id="inbox-items-container" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                                    ${inboxItemsHTML}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', inboxModalHTML);
+                } else {
+                    // Si ya existe (por cambio rápido de página), solo recargamos la lista
+                    document.getElementById('inbox-items-container').innerHTML = inboxItemsHTML;
+                }
+
                 document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
                 
                 if (perfil.rol === 'mod') {
@@ -87,6 +169,26 @@ async function checkUserStatus() {
                         window.location.href = 'mod-panel.html';
                     });
                 }
+
+                // Eventos del Buzón
+                const inboxModal = document.getElementById('inbox-modal');
+                document.getElementById('btn-inbox').addEventListener('click', async () => {
+                    inboxModal.style.display = 'flex';
+                    // Al abrirlo, apagamos la bolita y marcamos como leídos en la BD
+                    if (hasUnread) {
+                        document.getElementById('inbox-dot').classList.remove('is-unread');
+                        hasUnread = false;
+                        await supabase.from('submits').update({ leido: true }).eq('user_uid', user.id).eq('leido', false);
+                    }
+                });
+
+                document.getElementById('btn-close-inbox').addEventListener('click', () => {
+                    inboxModal.classList.add('is-closing');
+                    setTimeout(() => {
+                        inboxModal.style.display = 'none';
+                        inboxModal.classList.remove('is-closing');
+                    }, 300);
+                });
             }
         }
     } else {

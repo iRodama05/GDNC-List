@@ -61,7 +61,10 @@
             </div>
         </div>
 
-        <!-- Contenedor donde se inyectan las tarjetas -->
+        <!-- NUEVO: Contenedor exclusivo para el Top 3 -->
+        <div id="podium-container" class="podium-container is-active"></div>
+
+        <!-- Contenedor del resto de jugadores (Top 4 en adelante) -->
         <div id="ranking-container" class="ranking-grid">
             <p style="text-align: center; color: var(--text-muted);">Cargando ranking...</p>
         </div>
@@ -88,9 +91,9 @@
 
     <!-- Scripts -->
     <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/ui.js"></script> 
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/db.js"></script>
-    <script type="module" src="js/Submit.js"></script>
-    <script type="module" src="js/ui.js"></script>
+    <script type="module" src="js/Submit.js"></script> 
 </body>
 </html>

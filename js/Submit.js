@@ -31,8 +31,15 @@ if (btnOpenSubmit) {
 
 if (btnCancelSubmit) {
     btnCancelSubmit.addEventListener('click', () => {
-        submitModal.style.display = 'none';
-        submitMsg.textContent = '';
+        // Disparamos la animación de salida
+        submitModal.classList.add('is-closing');
+        
+        // Esperamos 300ms antes de ocultarlo completamente
+        setTimeout(() => {
+            submitModal.style.display = 'none';
+            submitModal.classList.remove('is-closing'); // Limpiamos la clase
+            submitMsg.textContent = '';
+        }, 300);
     });
 }
 
@@ -71,11 +78,17 @@ if (btnSendSubmit) {
             submitMsg.textContent = '¡Récord enviado exitosamente!';
             
             setTimeout(() => {
-                submitModal.style.display = 'none';
-                submitMsg.textContent = '';
-                document.getElementById('submit-lvl-name').value = '';
-                document.getElementById('submit-lvl-id').value = '';
-                document.getElementById('submit-video-url').value = '';
+                // Animación de salida tras mensaje de éxito
+                submitModal.classList.add('is-closing');
+                
+                setTimeout(() => {
+                    submitModal.style.display = 'none';
+                    submitModal.classList.remove('is-closing');
+                    submitMsg.textContent = '';
+                    document.getElementById('submit-lvl-name').value = '';
+                    document.getElementById('submit-lvl-id').value = '';
+                    document.getElementById('submit-video-url').value = '';
+                }, 300);
             }, 2000);
         }
         
