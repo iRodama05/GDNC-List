@@ -121,7 +121,7 @@ async function cargarPerfilCompleto() {
                 <div style="grid-column: 1 / -1; margin: 30px 0 10px 0;">
                     <hr style="border: none; border-top: 1px solid var(--border-default);">
                     <p style="text-align: center; color: var(--text-muted); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase;">
-                        Récords antiguos / Historial
+                        Otras Récords
                     </p>
                 </div>
             `;
