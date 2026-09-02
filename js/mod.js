@@ -51,25 +51,27 @@ async function cargarPendientes() {
                 <a href="${submit.video_url}" target="_blank" class="btn-primary" style="text-decoration:none; display: inline-flex; align-items: center; height: fit-content;">Ver Video</a>
             </div>
             
-            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
-                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">Motivo / Nota del Mod (Visible para el jugador):</label>
-                <div style="display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap;">
-                    <select id="reason-${submit.submit_id}" class="input-field" style="flex: 1; margin: 0; min-width: 200px;">
-                        <option value="Aprobado sin problemas">Aprobado sin problemas</option>
+            <!-- CONTROLES PRINCIPALES (Aceptar / Iniciar Rechazo) -->
+            <div id="main-controls-${submit.submit_id}" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; margin-top: 5px; transition: opacity 0.3s ease;">
+                <input type="number" id="pts-${submit.submit_id}" class="input-field" placeholder="Pts a otorgar..." style="width: 150px; margin-bottom: 0; border: 2px solid var(--color-success); font-weight: bold; text-align: center; background: rgba(67, 181, 129, 0.1);">
+                <button class="btn-primary btn-primary--success btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}">Aceptar Récord</button>
+                <button class="btn-outline btn-outline--danger btn-reject-init" data-id="${submit.submit_id}">Rechazar</button>
+            </div>
+
+            <!-- CONTROLES DE RECHAZO (Ocultos por defecto) -->
+            <div id="reject-controls-${submit.submit_id}" style="display: none; background: rgba(217, 83, 79, 0.1); padding: 15px; border-radius: 8px; margin-top: 5px; border: 1px solid var(--color-error); opacity: 0; transition: opacity 0.3s ease;">
+                <label style="font-size: 0.85rem; color: var(--color-error); font-weight: bold; margin-bottom: 10px; display: block;">Selecciona el motivo del rechazo:</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <select id="reason-${submit.submit_id}" class="input-field" style="flex: 1; margin: 0; min-width: 200px; border-color: var(--color-error);">
                         <option value="Video privado o caído">Video privado o caído</option>
                         <option value="Falta de clics / Raw footage no válido">Falta de clics / Raw footage no válido</option>
                         <option value="Uso de hacks o botting detectado">Uso de hacks o botting detectado</option>
                         <option value="Nivel o ID incorrecto">Nivel o ID incorrecto</option>
-                        <option value="Otro">Otro (Especifique al lado)</option>
+                        <option value="El video no muestra una completación válida">El video no muestra una completación válida</option>
                     </select>
-                    <input type="text" id="details-${submit.submit_id}" class="input-field" placeholder="Detalles (Opcional)..." style="flex: 1; margin: 0; min-width: 200px;">
+                    <button class="btn-outline btn-cancel-reject" data-id="${submit.submit_id}">Cancelar</button>
+                    <button class="btn-primary btn-reject-confirm" data-id="${submit.submit_id}" style="background-color: var(--color-error); color: white;">Confirmar Rechazo</button>
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; margin-top: 10px;">
-                <input type="number" id="pts-${submit.submit_id}" class="input-field" placeholder="Puntos a otorgar" style="width: 150px; margin-bottom: 0;">
-                <button class="btn-primary btn-primary--success btn-accept" data-id="${submit.submit_id}" data-uid="${submit.user_uid}" data-lvl="${submit.nivel_nombre}">Aceptar Récord</button>
-                <button class="btn-outline btn-outline--danger btn-reject" data-id="${submit.submit_id}">Rechazar</button>
             </div>
         `;
         pendientesContainer.appendChild(card);
@@ -79,29 +81,61 @@ async function cargarPendientes() {
 }
 
 function asignarEventos() {
-    // Evento Rechazar
-    document.querySelectorAll('.btn-reject').forEach(btn => {
+    // 1. Mostrar menú de rechazo con animación
+    document.querySelectorAll('.btn-reject-init').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const submitId = e.target.getAttribute('data-id');
+            const mainControls = document.getElementById(`main-controls-${submitId}`);
+            const rejectControls = document.getElementById(`reject-controls-${submitId}`);
+            
+            // Fade out principal
+            mainControls.style.opacity = '0';
+            setTimeout(() => {
+                mainControls.style.display = 'none';
+                
+                // Fade in rechazo
+                rejectControls.style.display = 'block';
+                void rejectControls.offsetWidth; // Forzar reflow para que corra la transición
+                rejectControls.style.opacity = '1';
+            }, 300);
+        });
+    });
+
+    // 2. Cancelar rechazo (volver a controles principales)
+    document.querySelectorAll('.btn-cancel-reject').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const submitId = e.target.getAttribute('data-id');
+            const mainControls = document.getElementById(`main-controls-${submitId}`);
+            const rejectControls = document.getElementById(`reject-controls-${submitId}`);
+            
+            rejectControls.style.opacity = '0';
+            setTimeout(() => {
+                rejectControls.style.display = 'none';
+                
+                mainControls.style.display = 'flex';
+                void mainControls.offsetWidth;
+                mainControls.style.opacity = '1';
+            }, 300);
+        });
+    });
+
+    // 3. Confirmar Rechazo
+    document.querySelectorAll('.btn-reject-confirm').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const submitId = e.target.getAttribute('data-id');
             const selectReason = document.getElementById(`reason-${submitId}`).value;
-            const detailReason = document.getElementById(`details-${submitId}`).value.trim();
             
-            let notaFinal = selectReason;
-            if (selectReason === 'Otro' || detailReason !== '') {
-                notaFinal = detailReason !== '' ? detailReason : selectReason;
-            }
-
-            if(confirm("¿Seguro que quieres rechazar este récord?")) {
+            if(confirm("¿Seguro que quieres rechazar este récord? Se notificará al usuario.")) {
                 e.target.disabled = true;
                 e.target.textContent = "...";
-                // Marcamos leido = false para disparar la notificación
-                await supabase.from('submits').update({ estado: 'rechazado', mod_nota: notaFinal, leido: false }).eq('submit_id', submitId);
+                // Marcamos leido = false y adjuntamos el motivo
+                await supabase.from('submits').update({ estado: 'rechazado', mod_nota: selectReason, leido: false }).eq('submit_id', submitId);
                 cargarPendientes();
             }
         });
     });
 
-    // Evento Aceptar
+    // 4. Aceptar Récord
     document.querySelectorAll('.btn-accept').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const submitId = e.target.getAttribute('data-id');
@@ -109,23 +143,18 @@ function asignarEventos() {
             const inputPts = document.getElementById(`pts-${submitId}`).value;
             const puntosNuevos = parseInt(inputPts);
 
-            const selectReason = document.getElementById(`reason-${submitId}`).value;
-            const detailReason = document.getElementById(`details-${submitId}`).value.trim();
-            
-            let notaFinal = selectReason;
-            if (selectReason === 'Otro' || detailReason !== '') {
-                notaFinal = detailReason !== '' ? detailReason : selectReason;
+            // Validar que el mod no haya olvidado poner los puntos
+            if (!inputPts || puntosNuevos <= 0 || isNaN(puntosNuevos)) {
+                return alert("⚠️ Por favor, ingresa los puntos que otorgarás antes de aceptar.");
             }
-
-            if (!inputPts || puntosNuevos <= 0) return alert("Debes ingresar una cantidad de puntos válida.");
 
             e.target.disabled = true;
             e.target.textContent = "Procesando...";
 
             try {
-                // Actualizar el Submit (Añadimos leido = false para la bolita verde)
+                // Actualizamos el estado (Aceptado no necesita nota)
                 await supabase.from('submits')
-                    .update({ estado: 'aceptado', puntos_asignados: puntosNuevos, mod_nota: notaFinal, leido: false })
+                    .update({ estado: 'aceptado', puntos_asignados: puntosNuevos, mod_nota: null, leido: false })
                     .eq('submit_id', submitId);
                 
                 // Extraer el top 3
