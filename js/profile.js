@@ -84,11 +84,47 @@ async function cargarPerfilCompleto() {
     }
 
     recordsGrid.innerHTML = records.map((record, index) => {
-        let embedUrl = record.video_url;
-        if (embedUrl.includes('youtube.com/watch?v=')) {
-            embedUrl = embedUrl.replace('watch?v=', 'embed/');
-        } else if (embedUrl.includes('youtu.be/')) {
-            embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+        // LÓGICA DE REPRODUCTOR / FALLBACK
+        let videoContainerHTML = '';
+        const rawUrl = (record.video_url || '').toLowerCase();
+        
+        // 1. Si es YouTube, intentamos incrustarlo (iframe)
+        if (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be')) {
+            let embedUrl = record.video_url;
+            if (embedUrl.includes('watch?v=')) {
+                embedUrl = embedUrl.replace('watch?v=', 'embed/');
+            } else if (embedUrl.includes('youtu.be/')) {
+                embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+            }
+            videoContainerHTML = `<iframe class="record-video" src="${embedUrl}" allowfullscreen></iframe>`;
+        } 
+        // 2. Si es de otra plataforma (Medal, Twitch, etc), generamos el "Placeholder" elegante
+        else {
+            let btnColor = 'var(--color-discord)';
+            let textColor = '#fff';
+            let platformName = 'Ver enlace externo';
+            
+            if (rawUrl.includes('medal.tv')) {
+                btnColor = '#FFB800'; // Amarillo Medal
+                textColor = '#000';
+                platformName = 'Ver en Medal.tv';
+            } else if (rawUrl.includes('twitch.tv')) {
+                btnColor = '#9146FF'; // Morado Twitch
+                textColor = '#fff';
+                platformName = 'Ver en Twitch';
+            }
+
+            const externalIconSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 5px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+            
+            videoContainerHTML = `
+                <div class="record-video" style="display: flex; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0c;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 10px;"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+                    <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem;">Video alojado externamente</p>
+                    <a href="${record.video_url}" target="_blank" class="btn-primary" style="background-color: ${btnColor}; color: ${textColor}; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                        ${platformName} ${externalIconSVG}
+                    </a>
+                </div>
+            `;
         }
 
         const modControls = isMod ? `
@@ -100,7 +136,7 @@ async function cargarPerfilCompleto() {
 
         const cardHTML = `
             <div class="record-card">
-                <iframe class="record-video" src="${embedUrl}" allowfullscreen></iframe>
+                ${videoContainerHTML}
                 <div class="record-info">
                     <div>
                         <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">${record.nivel_nombre}</h3>
