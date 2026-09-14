@@ -47,8 +47,9 @@ async function cargarPerfilCompleto() {
 
     const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
 
+    // --- NUEVO: Fallback (onerror) en la foto principal del banner ---
     profileBanner.innerHTML = `
-        <img src="${perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="profile-avatar-giant">
+        <img src="${perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="profile-avatar-giant" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
         <div style="flex: 1;">
             <h1 style="margin: 0; font-size: 2.5rem; color: var(--text-main);">${perfil.gd_username}</h1>
             <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; color: var(--color-discord);">
@@ -84,11 +85,9 @@ async function cargarPerfilCompleto() {
     }
 
     recordsGrid.innerHTML = records.map((record, index) => {
-        // LÓGICA DE REPRODUCTOR / FALLBACK
         let videoContainerHTML = '';
         const rawUrl = (record.video_url || '').toLowerCase();
         
-        // 1. Si es YouTube, intentamos incrustarlo (iframe)
         if (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be')) {
             let embedUrl = record.video_url;
             if (embedUrl.includes('watch?v=')) {
@@ -98,18 +97,17 @@ async function cargarPerfilCompleto() {
             }
             videoContainerHTML = `<iframe class="record-video" src="${embedUrl}" allowfullscreen></iframe>`;
         } 
-        // 2. Si es de otra plataforma (Medal, Twitch, etc), generamos el "Placeholder" elegante
         else {
             let btnColor = 'var(--color-discord)';
             let textColor = '#fff';
             let platformName = 'Ver enlace externo';
             
             if (rawUrl.includes('medal.tv')) {
-                btnColor = '#FFB800'; // Amarillo Medal
+                btnColor = '#FFB800'; 
                 textColor = '#000';
                 platformName = 'Ver en Medal.tv';
             } else if (rawUrl.includes('twitch.tv')) {
-                btnColor = '#9146FF'; // Morado Twitch
+                btnColor = '#9146FF'; 
                 textColor = '#fff';
                 platformName = 'Ver en Twitch';
             }
@@ -225,10 +223,11 @@ async function abrirModalComentarios() {
         return;
     }
 
+    // --- NUEVO: Fallback (onerror) para los avatares en la zona de comentarios ---
     commentsList.innerHTML = comentarios.map(com => `
         <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                <img src="${com.usuarios.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 5px; object-fit: cover;">
+                <img src="${com.usuarios.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 5px; object-fit: cover;" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
                 <span style="font-weight: bold; color: var(--color-discord); font-size: 0.9rem;">${com.usuarios.gd_username}</span>
             </div>
             <p style="margin: 0; font-size: 0.9rem; color: var(--text-main); line-height: 1.4;">${com.texto}</p>
@@ -286,20 +285,16 @@ async function recalcularPerfil(uid) {
 function inicializarEventosMod(isMod) {
     if (!isMod) return;
 
-    // A. El HTML del modal ahora vive nativamente en profile.html
     const modModal = document.getElementById('mod-add-modal');
     
-    // Evento para abrir el modal
     document.getElementById('btn-mod-add-record')?.addEventListener('click', () => {
         modModal.style.display = 'flex';
     });
 
-    // Evento para cerrar el modal
     document.getElementById('btn-mod-cancel')?.addEventListener('click', () => {
         modModal.style.display = 'none';
     });
 
-    // B. Lógica para guardar el récord manualmente
     document.getElementById('btn-mod-submit')?.addEventListener('click', async (e) => {
         const name = document.getElementById('mod-lvl-name').value.trim();
         const id = document.getElementById('mod-lvl-id').value.trim();
@@ -313,7 +308,6 @@ function inicializarEventosMod(isMod) {
         e.target.disabled = true;
         e.target.textContent = "Guardando...";
 
-        // Insertar el récord saltándose la fase de pendientes ('estado: aceptado')
         await supabase.from('submits').insert([{
             user_uid: targetUid,
             gd_username: perfilDueno.gd_username,
@@ -328,7 +322,6 @@ function inicializarEventosMod(isMod) {
         window.location.reload();
     });
 
-    // C. Escuchar clics en los botones de Borrar y Editar inyectados en las tarjetas
     document.addEventListener('click', async (e) => {
         if (e.target.classList.contains('btn-delete-record')) {
             const submitId = e.target.getAttribute('data-id');
@@ -360,5 +353,4 @@ function inicializarEventosMod(isMod) {
     });
 }
 
-// Inicializador
 cargarPerfilCompleto();
