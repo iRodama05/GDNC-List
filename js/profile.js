@@ -12,6 +12,15 @@ const targetUid = urlParams.get('uid');
 // Declaramos la variable globalmente para usarla al guardar el récord manual
 let perfilDueno = null; 
 
+// Diccionario de banners según puntos
+const BANNER_REWARDS = [
+    { pts: 0, id: 'default', nombre: 'Clásico', preview: 'linear-gradient(90deg, #1e1e24, #2b2b36)' },
+    { pts: 25, id: 'banner_25', nombre: 'Principiante', preview: 'linear-gradient(90deg, #43cea2, #185a9d)' },
+    { pts: 50, id: 'banner_50', nombre: 'Avanzado', preview: 'linear-gradient(90deg, #ff512f, #dd2476)' },
+    { pts: 100, id: 'banner_100', nombre: 'Veterano', preview: 'linear-gradient(90deg, #1D976C, #93F9B9)' },
+    { pts: 1200, id: 'custom', nombre: 'Banner Personalizado', preview: 'url_input' }
+];
+
 // ==========================================
 // 2. CARGA PRINCIPAL DEL PERFIL
 // ==========================================
@@ -19,8 +28,16 @@ async function cargarPerfilCompleto() {
     if (!targetUid) return profileBanner.innerHTML = "<p style='color: var(--color-error);'>Usuario no especificado.</p>";
 
     let isMod = false;
+    let isOwner = false; // <-- Aquí renace la variable
+
     const { data: { user: sessionUser } } = await supabase.auth.getUser();
+    
     if (sessionUser) {
+        // Evaluamos si el que visita es el dueño
+        if (sessionUser.id === targetUid) {
+            isOwner = true;
+        }
+
         const { data: viewerProfile } = await supabase.from('usuarios')
             .select('rol').eq('uid', sessionUser.id).maybeSingle();
         if (viewerProfile && viewerProfile.rol === 'mod') {
@@ -38,14 +55,18 @@ async function cargarPerfilCompleto() {
     
     perfilDueno = perfil; 
 
-    // Botón de Mod inyectado en el banner
-    const modBannerBtn = isMod ? `
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-default);">
-            <button id="btn-mod-add-record" class="btn-primary btn-primary--mod" style="font-size: 0.8rem; padding: 5px 15px;">+ Añadir Récord Manual</button>
-        </div>
+    // Botones del banner para el perfil
+    const modBannerBtn = isMod ? '' : '';
+    const configBannerBtn = isOwner ? `
+        <button id="btn-edit-banner" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; border: 1px solid white; border-radius: 5px; padding: 5px 10px; cursor: pointer; transition: 0.2s; z-index: 10;">✏️ Cambiar Banner</button>
     ` : '';
 
     const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
+
+    // --- 1. APLICAR BANNER ACTIVO AL FONDO DEL PERFIL ---
+    const activeBannerId = perfil.banner_activo || 'default';
+    const activeBannerData = BANNER_REWARDS.find(b => b.id === activeBannerId) || BANNER_REWARDS[0];
+    profileBanner.style.background = activeBannerData.preview;
 
     // --- NUEVO: Fallback (onerror) en la foto principal del banner ---
     profileBanner.innerHTML = `
@@ -70,7 +91,67 @@ async function cargarPerfilCompleto() {
                 <span class="${roleClass}" style="font-size: 1rem; padding: 5px 15px;">${perfil.rol.toUpperCase()}</span>
             </div>
         </div>
+        ${configBannerBtn}
     `;
+
+    // 2. Lógica del Botón Banners (ABRIR MODAL Y LISTAR TODOS)
+    document.getElementById('btn-edit-banner')?.addEventListener('click', () => {
+        const misPuntos = perfil.puntos_totales || 0;
+        const modal = document.getElementById('banner-modal');
+        const listContainer = document.getElementById('banner-list');
+
+        listContainer.innerHTML = '';
+
+        // Recorremos TODOS los banners sin filtrar
+        BANNER_REWARDS.forEach(banner => {
+            const isSelected = (perfilDueno.banner_activo || 'default') === banner.id; 
+            const isUnlocked = misPuntos >= banner.pts;
+            
+            // Texto e íconos dinámicos dependiendo de si lo puede usar
+            const badgeText = isUnlocked 
+                ? banner.nombre 
+                : `🔒 ${banner.nombre} - ${banner.pts} PTS`;
+                
+            const lockedClass = isUnlocked ? '' : 'locked';
+            
+            listContainer.innerHTML += `
+                <div class="banner-option ${isSelected ? 'selected' : ''} ${lockedClass}" data-id="${banner.id}" data-unlocked="${isUnlocked}" style="background: ${banner.preview};">
+                    <span class="banner-badge">
+                        ${badgeText}
+                    </span>
+                </div>
+            `;
+        });
+
+        modal.style.display = 'flex';
+    });
+
+    // 3. Lógica para SELECCIONAR Y GUARDAR el banner
+    document.getElementById('banner-list')?.addEventListener('click', async (e) => {
+        // Detectamos a qué tarjeta se le dio clic
+        const option = e.target.closest('.banner-option');
+        if (!option) return; // Si no hizo clic en un banner, ignorar
+
+        const isUnlocked = option.getAttribute('data-unlocked') === 'true';
+        if (!isUnlocked) return; // Si está bloqueado, no hacemos nada
+
+        const bannerId = option.getAttribute('data-id');
+        const currentActive = perfilDueno.banner_activo || 'default';
+
+        if (bannerId === currentActive) return; // Si ya lo tiene puesto, ignorar
+
+        // A) Actualizamos la UI al instante (Feedback visual)
+        document.querySelectorAll('.banner-option').forEach(el => el.classList.remove('selected'));
+        option.classList.add('selected');
+        
+        // B) Cambiamos el fondo del perfil en vivo sin recargar la página
+        const newBannerData = BANNER_REWARDS.find(b => b.id === bannerId);
+        if(newBannerData) profileBanner.style.background = newBannerData.preview;
+
+        // C) Guardamos silenciosamente en Supabase
+        perfilDueno.banner_activo = bannerId; // Actualizamos la memoria local
+        await supabase.from('usuarios').update({ banner_activo: bannerId }).eq('uid', targetUid);
+    });
 
     const { data: records } = await supabase
         .from('submits')
@@ -223,7 +304,6 @@ async function abrirModalComentarios() {
         return;
     }
 
-    // --- NUEVO: Fallback (onerror) para los avatares en la zona de comentarios ---
     commentsList.innerHTML = comentarios.map(com => `
         <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
@@ -352,5 +432,17 @@ function inicializarEventosMod(isMod) {
         }
     });
 }
+
+// 5. Cierre Global del Modal de Banners
+document.getElementById('btn-close-banner-modal')?.addEventListener('click', () => {
+    const modal = document.getElementById('banner-modal');
+    if (modal) {
+        modal.classList.add('is-closing');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('is-closing');
+        }, 300);
+    }
+});
 
 cargarPerfilCompleto();
