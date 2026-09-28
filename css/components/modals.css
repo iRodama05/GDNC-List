@@ -157,6 +157,7 @@ color: var(--text-main);
 
 .banner-option {
 position: relative;
+flex: 0 0 auto;
 height: 125px;
 border-radius: 8px;
 cursor: pointer;
