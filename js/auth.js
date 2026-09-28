@@ -1,4 +1,4 @@
-import { supabase } from './config.js';
+import { supabase, IS_DEV_MODE, DEV_USER, getCurrentUser } from './config.js';
 
 const btnLogin = document.getElementById('btn-login');
 const authSection = document.getElementById('auth-section');
@@ -32,16 +32,18 @@ async function cerrarSesion() {
 
 // 1. Revisar estado y cargar perfil de la base de datos
 async function checkUserStatus() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
 
     if (user) {
         currentUserUid = user.id;
         
-        const { data: perfil, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('uid', user.id)
-            .single();
+        const { data: perfil } = IS_DEV_MODE
+            ? { data: DEV_USER }
+            : await supabase
+                .from('usuarios')
+                .select('*')
+                .eq('uid', user.id)
+                .single();
 
         if (perfil) {
             // --- NUEVO: SINCRONIZACIÓN DE FOTO DE PERFIL ---
