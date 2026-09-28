@@ -1,14 +1,16 @@
-import { supabase } from './config.js';
+import { IS_DEV_MODE } from './config.js';
+import { verificarAccesoMod, obtenerSubmitsPendientes, rechazarSubmit, aceptarSubmit } from './modApi.js';
 
 const pendientesContainer = document.getElementById('pendientes-container');
 
 async function initModPanel() {
+    if (IS_DEV_MODE) return cargarPendientes();
+
     // 1. Verificamos sesión y permisos
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user, esMod } = await verificarAccesoMod();
     if (!user) return window.location.replace('index.html');
 
-    const { data: perfil } = await supabase.from('usuarios').select('rol').eq('uid', user.id).single();
-    if (!perfil || perfil.rol !== 'mod') {
+    if (!esMod) {
         alert("Acceso denegado. No eres moderador.");
         return window.location.replace('index.html');
     }
@@ -20,13 +22,16 @@ async function cargarPendientes() {
     pendientesContainer.innerHTML = '<p style="color: var(--text-muted);">Cargando récords...</p>';
 
     // 2. Extraer los récords que estén pendientes
-    const { data: pendientes, error } = await supabase
-        .from('submits')
-        .select('*')
-        .eq('estado', 'pendiente')
-        .order('fecha_submit', { ascending: true });
+    let pendientes;
+    try {
+        pendientes = await obtenerSubmitsPendientes();
+    } catch (error) {
+        console.error("Error al cargar pendientes:", error);
+        pendientesContainer.innerHTML = '<p style="color: var(--color-error); text-align:center;">Hubo un error al cargar los récords pendientes.</p>';
+        return;
+    }
 
-    if (error || pendientes.length === 0) {
+    if (pendientes.length === 0) {
         pendientesContainer.innerHTML = '<p style="color: var(--color-success); text-align:center;">No hay récords pendientes por revisar. ¡Todo al día!</p>';
         return;
     }
@@ -126,11 +131,19 @@ function asignarEventos() {
             const selectReason = document.getElementById(`reason-${submitId}`).value;
             
             if(confirm("¿Seguro que quieres rechazar este récord? Se notificará al usuario.")) {
+                const textoOriginal = e.target.textContent;
                 e.target.disabled = true;
                 e.target.textContent = "...";
-                // Marcamos leido = false y adjuntamos el motivo
-                await supabase.from('submits').update({ estado: 'rechazado', mod_nota: selectReason, leido: false }).eq('submit_id', submitId);
-                cargarPendientes();
+
+                try {
+                    await rechazarSubmit(submitId, selectReason);
+                    cargarPendientes();
+                } catch (error) {
+                    console.error("Error al rechazar récord:", error);
+                    alert("Hubo un error procesando la petición.");
+                    e.target.disabled = false;
+                    e.target.textContent = textoOriginal;
+                }
             }
         });
     });
@@ -148,37 +161,18 @@ function asignarEventos() {
                 return alert("⚠️ Por favor, ingresa los puntos que otorgarás antes de aceptar.");
             }
 
+            const textoOriginal = e.target.textContent;
             e.target.disabled = true;
             e.target.textContent = "Procesando...";
 
             try {
-                // Actualizamos el estado (Aceptado no necesita nota)
-                await supabase.from('submits')
-                    .update({ estado: 'aceptado', puntos_asignados: puntosNuevos, mod_nota: null, leido: false })
-                    .eq('submit_id', submitId);
-                
-                // Extraer el top 3
-                const { data: top3Niveles } = await supabase
-                    .from('submits')
-                    .select('nivel_nombre, puntos_asignados')
-                    .eq('user_uid', userUid)
-                    .eq('estado', 'aceptado')
-                    .order('puntos_asignados', { ascending: false })
-                    .limit(3);
-
-                // Calcular y formatear
-                const sumaTop3 = top3Niveles.reduce((acumulador, nivel) => acumulador + nivel.puntos_asignados, 0);
-                const nuevoTop3 = top3Niveles.map(nivel => ({ nombre: nivel.nivel_nombre, puntos: nivel.puntos_asignados }));
-
-                // Sobrescribir el perfil del usuario
-                await supabase.from('usuarios')
-                    .update({ puntos_totales: sumaTop3, top_3_hardests: nuevoTop3 })
-                    .eq('uid', userUid);
-
+                await aceptarSubmit(submitId, userUid, puntosNuevos);
                 cargarPendientes(); // Recargar lista
             } catch (error) {
                 console.error("Error al procesar récord:", error);
                 alert("Hubo un error procesando la petición.");
+                e.target.disabled = false;
+                e.target.textContent = textoOriginal;
             }
         });
     });

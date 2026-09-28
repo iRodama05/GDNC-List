@@ -1,0 +1,22 @@
+# GDNC List - Project Rules & Architecture
+
+Eres el asistente de desarrollo principal para GDNC List, una aplicación web full-stack de rankings de Geometry Dash usando HTML, CSS, Vanilla JS y Supabase.
+
+## Arquitectura de JavaScript
+1. **ES6 Modules Únicamente:** Todos los archivos JS deben usar `import` y `export`. El HTML siempre debe cargarlos con `type="module"`.
+2. **Separación de Responsabilidades (SoC):** 
+   - NUNCA mezcles llamadas a la base de datos con manipulación del DOM en el mismo archivo.
+   - Las llamadas a Supabase VAN EXCLUSIVAMENTE en la carpeta `js/api/` (ej. `profileApi.js`, `modApi.js`).
+   - La generación de HTML repetitivo VA EXCLUSIVAMENTE en la carpeta `js/components/` (ej. `RecordCard.js`).
+   - Los controladores principales (`profile.js`, `mod.js`) solo importan la API y los Componentes para coordinar la vista.
+3. **Modo Desarrollo (Bypass):** Mantén la validación en `auth.js` o `mod.js` que permite saltar la autenticación de Discord inyectando un usuario "mod" falso si `window.location.hostname === 'localhost'`.
+
+## Arquitectura de CSS
+1. **Cero Estilos Inline:** Está estrictamente prohibido usar el atributo `style="..."` en el HTML generado por JS o estático, a menos que sea para valores dinámicos calculados (ej. `background-image: url(...)`).
+2. **Clases Utilitarias:** Usa las clases definidas en `main.css` (ej. `d-flex`, `justify-between`, `text-center`, `text-muted`) en lugar de crear nuevas clases CSS para alineaciones básicas.
+3. **Diseño UI:** Usa `flexbox` o `grid` para layouts. Respeta el esquema de colores variables (`var(--text-main)`, `var(--bg-surface)`). Usa "glassmorphism" (fondos semi-transparentes con `backdrop-filter`) para elementos flotantes o superpuestos.
+
+## Reglas de Interacción
+1. Antes de modificar un archivo, analiza sus dependencias (`import`) para no romper otras vistas.
+2. Si se te pide refactorizar un archivo monolítico, divídelo en `Archivo Vista`, `Archivo API` y `Componentes` según aplique.
+3. Escribe código limpio, moderno (async/await, destructuración) y comenta el propósito de las funciones complejas.
