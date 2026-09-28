@@ -46,6 +46,16 @@ async function checkUserStatus() {
                 .single();
 
         if (perfil) {
+            // --- NUEVO: SINCRONIZACIÓN DE FOTO DE PERFIL ---
+            const authAvatar = user.user_metadata?.avatar_url;
+            if (authAvatar && authAvatar !== perfil.avatar_url) {
+                // Actualizamos la base de datos silenciosamente
+                await supabase.from('usuarios').update({ avatar_url: authAvatar }).eq('uid', user.id);
+                // Actualizamos la variable local para que se muestre bien ahora mismo
+                perfil.avatar_url = authAvatar;
+            }
+            // ------------------------------------------------
+
             if (!perfil.gd_username || !perfil.gd_verificado) {
                 gdSetupModal.style.display = 'flex';
             } else {
@@ -69,7 +79,6 @@ async function checkUserStatus() {
                 let inboxItemsHTML = '<p style="color: var(--text-muted); font-size:0.9rem;">No has subido ningún récord aún.</p>';
 
                 if (misEnvios && misEnvios.length > 0) {
-                    // La notificación toma el color del último envío si no está leído
                     const ultimoEnvio = misEnvios[0];
                     if (ultimoEnvio.leido === false) {
                         hasUnread = true;
@@ -95,27 +104,6 @@ async function checkUserStatus() {
                     }).join('');
                 }
 
-                // 1. Inyectamos la info del perfil en la derecha (SIN el botón del buzón)
-                authSection.innerHTML = `
-                    <div class="nav-user-profile">
-                        <a href="profile.html?uid=${perfil.uid}">
-                            <img src="${avatar}" alt="Avatar" class="nav-avatar">
-                            <div class="nav-user-info">
-                                <span class="nav-gd-name">${perfil.gd_username}</span>
-                                <span class="${roleClass}">${roleText}</span>
-                            </div>
-                        </a>
-                        
-                        <div class="points-badge" style="margin-left: 10px;">
-                            <span class="points-badge__number">${perfil.puntos_totales || 0}</span>
-                            <span class="points-badge__label">PTS</span>
-                        </div>
-                        ${modButtonHTML}
-                        <button id="btn-logout" class="btn-outline" style="margin-left: 10px;">Log Out</button>
-                    </div>
-                `;
-
-                // 2. Movemos el buzón a la izquierda (junto al logo) usando JavaScript puro
                 let navBrand = document.querySelector('.nav-brand');
                 if (!navBrand) {
                     const logo = document.querySelector('.logo');
@@ -134,7 +122,6 @@ async function checkUserStatus() {
                     navBrand.appendChild(btnInbox);
                 }
 
-                // Inyectamos el vector SVG de campana moderna
                 btnInbox.innerHTML = `
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -142,8 +129,27 @@ async function checkUserStatus() {
                     </svg>
                     <span id="inbox-dot" class="inbox-dot ${hasUnread ? 'is-unread ' + dotClass : ''}"></span>
                 `;
+
+                // --- NUEVO: Agregamos onerror al tag <img> para evitar fotos rotas ---
+                authSection.innerHTML = `
+                    <div class="nav-user-profile">
+                        <a href="profile.html?uid=${perfil.uid}">
+                            <img src="${avatar}" alt="Avatar" class="nav-avatar" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
+                            <div class="nav-user-info">
+                                <span class="nav-gd-name">${perfil.gd_username}</span>
+                                <span class="${roleClass}">${roleText}</span>
+                            </div>
+                        </a>
+                        
+                        <div class="points-badge" style="margin-left: 10px;">
+                            <span class="points-badge__number">${perfil.puntos_totales || 0}</span>
+                            <span class="points-badge__label">PTS</span>
+                        </div>
+                        ${modButtonHTML}
+                        <button id="btn-logout" class="btn-outline" style="margin-left: 10px;">Log Out</button>
+                    </div>
+                `;
                 
-                // 3. Inyectamos el Modal del Buzón (Verificando que no exista ya)
                 if (!document.getElementById('inbox-modal')) {
                     const inboxModalHTML = `
                         <div id="inbox-modal" class="modal-overlay">
@@ -160,7 +166,6 @@ async function checkUserStatus() {
                     `;
                     document.body.insertAdjacentHTML('beforeend', inboxModalHTML);
                 } else {
-                    // Si ya existe (por cambio rápido de página), solo recargamos la lista
                     document.getElementById('inbox-items-container').innerHTML = inboxItemsHTML;
                 }
 
@@ -172,11 +177,9 @@ async function checkUserStatus() {
                     });
                 }
 
-                // Eventos del Buzón
                 const inboxModal = document.getElementById('inbox-modal');
                 document.getElementById('btn-inbox').addEventListener('click', async () => {
                     inboxModal.style.display = 'flex';
-                    // Al abrirlo, apagamos la bolita y marcamos como leídos en la BD
                     if (hasUnread) {
                         document.getElementById('inbox-dot').classList.remove('is-unread');
                         hasUnread = false;
@@ -198,7 +201,6 @@ async function checkUserStatus() {
     }
 }
 
-// 2. Lógica para generar el código
 const btnGenerarCodigo = document.getElementById('btn-generar-codigo');
 if (btnGenerarCodigo) {
     btnGenerarCodigo.addEventListener('click', async () => {
@@ -225,7 +227,6 @@ if (btnGenerarCodigo) {
     });
 }
 
-// 3. Lógica para leer GDBrowser y verificar
 const btnVerificarGd = document.getElementById('btn-verificar-gd');
 if (btnVerificarGd) {
     btnVerificarGd.addEventListener('click', async () => {
@@ -264,7 +265,6 @@ if (btnVerificarGd) {
     });
 }
 
-// Inicializar una sola vez
 checkUserStatus();
 
 supabase.auth.onAuthStateChange((event, session) => {

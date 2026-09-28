@@ -1,5 +1,4 @@
 export function PlayerCard(player, rank) {
-    // 1. Asignamos la clase BEM según el top
     let rankClass = "";
     if (rank === 1) rankClass = "player-card--rank-1";
     if (rank === 2) rankClass = "player-card--rank-2";
@@ -7,7 +6,6 @@ export function PlayerCard(player, rank) {
 
     const avatar = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-    // 2. Generar la lista de sus top 3 hardests con las nuevas clases
     let hardestsHTML = '';
     if (player.top_3_hardests && player.top_3_hardests.length > 0) {
         hardestsHTML = player.top_3_hardests.map(nivel => `
@@ -20,12 +18,12 @@ export function PlayerCard(player, rank) {
         hardestsHTML = '<span class="hardest-item__empty">Sin récords registrados</span>';
     }
 
-    // 3. Devolvemos el HTML completamente limpio, sin "styles" en línea
+    // --- NUEVO: Agregado el onerror al avatar ---
     return `
         <a href="profile.html?uid=${player.uid}" class="player-card ${rankClass}">
             <div class="player-card__rank-number">#${rank}</div>
             
-            <img src="${avatar}" alt="Avatar de ${player.gd_username}" class="player-card__avatar">
+            <img src="${avatar}" alt="Avatar de ${player.gd_username}" class="player-card__avatar" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
             
             <div class="player-card__info">
                 <h3 class="player-card__title">${player.gd_username}</h3>
