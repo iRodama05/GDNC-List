@@ -75,3 +75,166 @@ opacity: 0;
 transform: translateY(30px) scale(0.9);
 }
 }
+
+@keyframes popOutModal {
+from {
+opacity: 1;
+transform: translateY(0) scale(1);
+}
+to {
+opacity: 0;
+transform: translateY(30px) scale(0.9);
+}
+}
+
+/* STREAMING_CHUNK: Estilos del modal de banners... /
+/ =========================================
+MODAL DE BANNERS (PERFIL)
+========================================= */
+.banner-modal-content {
+background: var(--bg-surface);
+padding: 20px;
+border-radius: 12px;
+width: 90%;
+max-width: 500px;
+border: 1px solid var(--border-default);
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.modal-header h2 {
+margin: 0;
+color: var(--text-main);
+font-size: 1.2rem;
+}
+
+.btn-close-icon {
+background: transparent;
+border: none;
+color: var(--text-muted);
+font-size: 1.5rem;
+cursor: pointer;
+transition: color 0.2s;
+}
+
+.btn-close-icon:hover {
+color: var(--text-main);
+}
+
+.banner-scroll-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+max-height: 60vh;
+overflow-y: auto;
+padding-right: 5px;
+}
+
+/* STREAMING_CHUNK: Opciones de Banners... */
+.banner-modal__hint {
+margin: 4px 0 0;
+color: var(--text-muted);
+font-size: 0.8rem;
+max-width: 340px;
+}
+
+.banner-file-input {
+display: none;
+}
+
+.banner-feedback {
+margin: 12px 0 0;
+font-size: 0.85rem;
+color: var(--text-main);
+}
+
+.banner-option {
+position: relative;
+height: 96px;
+border-radius: 8px;
+cursor: pointer;
+border: 2px solid transparent;
+display: flex;
+align-items: center;
+justify-content: center;
+background-color: #1e1e24;
+background-image:
+  linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.16)),
+  var(--banner-image, none),
+  var(--banner-fallback, #1e1e24);
+background-size: cover;
+background-position: center;
+transition: transform 0.2s, border-color 0.2s;
+}
+
+.banner-option--empty {
+border-style: dashed;
+border-color: rgba(255, 255, 255, 0.35);
+}
+
+.banner-upload-btn {
+position: absolute;
+right: 10px;
+bottom: 8px;
+border: 1px solid rgba(255, 255, 255, 0.4);
+background: rgba(0, 0, 0, 0.5);
+color: #ffffff;
+border-radius: 999px;
+padding: 4px 10px;
+font-size: 0.75rem;
+cursor: pointer;
+backdrop-filter: blur(6px);
+}
+
+.banner-upload-btn:hover {
+background: rgba(0, 0, 0, 0.75);
+}
+
+.banner-option:hover {
+transform: scale(1.02);
+}
+
+.banner-option.selected {
+border-color: #ffffff;
+box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.banner-badge {
+background: rgba(0,0,0,0.6);
+color: white;
+padding: 5px 15px;
+border-radius: 20px;
+font-weight: bold;
+font-size: 0.9rem;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.banner-badge {
+background: rgba(0,0,0,0.6);
+color: white;
+padding: 5px 15px;
+border-radius: 20px;
+font-weight: bold;
+font-size: 0.9rem;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+/* STREAMING_CHUNK: Estilos para banners bloqueados... */
+.banner-option.locked {
+filter: grayscale(100%) opacity(0.5);
+cursor: not-allowed;
+border-color: transparent !important;
+}
+
+.banner-option.locked:hover {
+transform: none; /* Quitamos la animación de saltito */
+}

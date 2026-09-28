@@ -1,4 +1,6 @@
-import { supabase, IS_DEV_MODE, DEV_USER, getCurrentUser } from './config.js';
+import { supabase, getCurrentUser } from './config.js';
+import { actualizarBannerActivo, subirBannerPersonalizado, BANNER_MAX_BYTES, BANNER_MIME_TYPES } from './api/profileApi.js';
+import { ProfileBanner, BannerOption, BANNER_REWARDS, CUSTOM_BANNER_ID, resolverBanner, aplicarFondoBanner } from './components/ProfileBanner.js';
 
 // ==========================================
 // 1. CONFIGURACIÓN INICIAL
@@ -10,7 +12,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const targetUid = urlParams.get('uid');
 
 // Declaramos la variable globalmente para usarla al guardar el récord manual
-let perfilDueno = null; 
+let perfilDueno = null;
 
 // ==========================================
 // 2. CARGA PRINCIPAL DEL PERFIL
@@ -19,16 +21,19 @@ async function cargarPerfilCompleto() {
     if (!targetUid) return profileBanner.innerHTML = "<p style='color: var(--color-error);'>Usuario no especificado.</p>";
 
     let isMod = false;
-    if (IS_DEV_MODE) {
-        isMod = DEV_USER.rol === 'mod';
-    } else {
-        const { data: { user: sessionUser } } = await supabase.auth.getUser();
-        if (sessionUser) {
-            const { data: viewerProfile } = await supabase.from('usuarios')
-                .select('rol').eq('uid', sessionUser.id).maybeSingle();
-            if (viewerProfile && viewerProfile.rol === 'mod') {
-                isMod = true;
-            }
+    let isOwner = false;
+
+    const sessionUser = await getCurrentUser();
+    if (sessionUser) {
+        // Evaluamos si el que visita es el dueño
+        if (sessionUser.id === targetUid) {
+            isOwner = true;
+        }
+
+        const { data: viewerProfile } = await supabase.from('usuarios')
+            .select('rol').eq('uid', sessionUser.id).maybeSingle();
+        if (viewerProfile && viewerProfile.rol === 'mod') {
+            isMod = true;
         }
     }
 
@@ -42,39 +47,9 @@ async function cargarPerfilCompleto() {
     
     perfilDueno = perfil; 
 
-    // Botón de Mod inyectado en el banner
-    const modBannerBtn = isMod ? `
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-default);">
-            <button id="btn-mod-add-record" class="btn-primary btn-primary--mod" style="font-size: 0.8rem; padding: 5px 15px;">+ Añadir Récord Manual</button>
-        </div>
-    ` : '';
-
-    const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
-
-    // --- NUEVO: Fallback (onerror) en la foto principal del banner ---
-    profileBanner.innerHTML = `
-        <img src="${perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="profile-avatar-giant" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
-        <div style="flex: 1;">
-            <h1 style="margin: 0; font-size: 2.5rem; color: var(--text-main);">${perfil.gd_username}</h1>
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; color: var(--color-discord);">
-                <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
-                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.15ZM42.68,65.27C36.67,65.27,31.7,59.65,31.7,52.7c0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C53.66,59.65,48.8,65.27,42.68,65.27Zm41.85,0c-6.01,0-10.98-5.62-10.98-12.58,0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C95.51,59.65,90.65,65.27,84.53,65.27Z"/>
-                </svg>
-                <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.5px;">${perfil.discord_username}</span>
-            </div>
-            ${modBannerBtn}
-        </div>
-        <div class="profile-stats-container">
-            <div class="stat-box">
-                <span class="stat-label">Puntos Actuales</span>
-                <span class="stat-value stat-value--red">${perfil.puntos_totales || 0}</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-label">Estado</span>
-                <span class="${roleClass}" style="font-size: 1rem; padding: 5px 15px;">${perfil.rol.toUpperCase()}</span>
-            </div>
-        </div>
-    `;
+    profileBanner.innerHTML = ProfileBanner(perfil, { isOwner, isMod });
+    aplicarFondoBanner(profileBanner, resolverBanner(perfil));
+    if (isOwner) inicializarSelectorBanners();
 
     const { data: records } = await supabase
         .from('submits')
@@ -227,7 +202,6 @@ async function abrirModalComentarios() {
         return;
     }
 
-    // --- NUEVO: Fallback (onerror) para los avatares en la zona de comentarios ---
     commentsList.innerHTML = comentarios.map(com => `
         <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
@@ -356,5 +330,119 @@ function inicializarEventosMod(isMod) {
         }
     });
 }
+
+const bannerModal = document.getElementById('banner-modal');
+const bannerList = document.getElementById('banner-list');
+const bannerFileInput = document.getElementById('banner-file-input');
+const bannerFeedback = document.getElementById('banner-feedback');
+
+function mostrarFeedbackBanner(mensaje) {
+    if (!bannerFeedback) return;
+    bannerFeedback.textContent = mensaje || '';
+    bannerFeedback.hidden = !mensaje;
+}
+
+function renderOpcionesBanner() {
+    const puntos = perfilDueno?.puntos_totales || 0;
+    const label = document.getElementById('banner-points-label');
+    if (label) {
+        label.textContent = `Tus puntos de banner: ${puntos}. Se calculan con tus 3 completions de mayor valor.`;
+    }
+
+    bannerList.innerHTML = BANNER_REWARDS.map((banner) => BannerOption(banner, {
+        unlocked: puntos >= banner.pts,
+        selected: (perfilDueno.banner_activo || 'default') === banner.id,
+        customUrl: perfilDueno.banner_custom_url
+    })).join('');
+}
+
+function abrirSelectorBanners() {
+    mostrarFeedbackBanner('');
+    renderOpcionesBanner();
+    bannerModal.style.display = 'flex';
+}
+
+async function seleccionarBanner(bannerId) {
+    const anterior = perfilDueno.banner_activo || 'default';
+    if (bannerId === anterior) return;
+
+    perfilDueno.banner_activo = bannerId;
+    aplicarFondoBanner(profileBanner, resolverBanner(perfilDueno));
+    renderOpcionesBanner();
+
+    try {
+        await actualizarBannerActivo(targetUid, bannerId);
+        mostrarFeedbackBanner('');
+    } catch (error) {
+        console.error(error);
+        perfilDueno.banner_activo = anterior;
+        aplicarFondoBanner(profileBanner, resolverBanner(perfilDueno));
+        renderOpcionesBanner();
+        mostrarFeedbackBanner('No se pudo guardar el banner. Revisa que hayas iniciado sesión.');
+    }
+}
+
+function pedirImagenPersonalizada() {
+    bannerFileInput.value = '';
+    bannerFileInput.click();
+}
+
+async function onArchivoBanner(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!BANNER_MIME_TYPES.includes(file.type)) {
+        return mostrarFeedbackBanner('Usa una imagen PNG, JPG o WEBP.');
+    }
+    if (file.size > BANNER_MAX_BYTES) {
+        return mostrarFeedbackBanner('La imagen no puede pesar más de 5 MB.');
+    }
+
+    mostrarFeedbackBanner('Subiendo banner...');
+    try {
+        const url = await subirBannerPersonalizado(targetUid, file);
+        perfilDueno.banner_custom_url = url;
+        perfilDueno.banner_activo = CUSTOM_BANNER_ID;
+        aplicarFondoBanner(profileBanner, resolverBanner(perfilDueno));
+        renderOpcionesBanner();
+        mostrarFeedbackBanner('Banner personalizado guardado.');
+    } catch (error) {
+        console.error(error);
+        mostrarFeedbackBanner('No se pudo subir la imagen. Necesitas 1200 puntos y haber iniciado sesión.');
+    }
+}
+
+function inicializarSelectorBanners() {
+    document.getElementById('btn-edit-banner')?.addEventListener('click', abrirSelectorBanners);
+
+    bannerList?.addEventListener('click', (event) => {
+        if (event.target.closest('[data-action="upload"]')) {
+            return pedirImagenPersonalizada();
+        }
+
+        const option = event.target.closest('.banner-option');
+        if (!option || option.getAttribute('data-unlocked') !== 'true') return;
+
+        const bannerId = option.getAttribute('data-id');
+        if (bannerId === CUSTOM_BANNER_ID && !perfilDueno.banner_custom_url) {
+            return pedirImagenPersonalizada();
+        }
+        seleccionarBanner(bannerId);
+    });
+
+    bannerFileInput?.addEventListener('change', onArchivoBanner);
+}
+
+// 5. Cierre Global del Modal de Banners
+document.getElementById('btn-close-banner-modal')?.addEventListener('click', () => {
+    const modal = document.getElementById('banner-modal');
+    if (modal) {
+        modal.classList.add('is-closing');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('is-closing');
+        }, 300);
+    }
+});
 
 cargarPerfilCompleto();

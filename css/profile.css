@@ -7,39 +7,101 @@
 
 /* --- BANNER SUPERIOR --- */
 .profile-banner {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 30px;
-  background: linear-gradient(135deg, rgba(30, 30, 40, 1) 0%, rgba(138, 43, 226, 0.2) 100%);
+  gap: 28px;
+  position: relative;
+  overflow: hidden;
+  min-height: 168px;
+  padding: 32px 36px;
+  margin-top: 20px;
   border: 1px solid var(--border-light);
   border-radius: 15px;
-  padding: 30px;
-  margin-top: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background-color: #121216;
+  background-image:
+    linear-gradient(180deg, rgba(8, 8, 12, 0.2) 0%, rgba(8, 8, 12, 0.05) 40%, rgba(8, 8, 12, 0.45) 100%),
+    linear-gradient(90deg, rgba(8, 8, 12, 0.72) 0%, rgba(8, 8, 12, 0.18) 38%, rgba(8, 8, 12, 0.18) 62%, rgba(8, 8, 12, 0.62) 100%),
+    var(--banner-image, none),
+    var(--banner-fallback, linear-gradient(135deg, #1e1e24, #2b2b36));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .profile-avatar-giant {
-  width: 100px;
-  height: 100px;
-  border-radius: 15px;
-  border: 2px solid var(--color-accent);
+  width: 108px;
+  height: 108px;
+  border-radius: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.88);
   object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  position: relative;
+  z-index: 1;
+}
+
+.profile-banner__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.profile-banner__name {
+  margin: 0;
+  font-size: 2.4rem;
+  line-height: 1.1;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9);
+  overflow-wrap: anywhere;
+}
+
+.profile-banner__discord {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+}
+
+.profile-banner__mod-btn {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  padding: 5px 14px;
 }
 
 .profile-stats-container {
   display: flex;
-  gap: 40px;
+  gap: 12px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-box {
   display: flex;
   flex-direction: column;
+  min-width: 112px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(10, 10, 14, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .stat-label {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.74);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 5px;
@@ -48,7 +110,40 @@
 .stat-value {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--text-main);
+  color: #ffffff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+}
+
+.stat-role {
+  font-size: 0.95rem;
+  padding: 5px 12px;
+}
+
+.btn-edit-banner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.75rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.profile-banner:hover .btn-edit-banner,
+.btn-edit-banner:focus-visible {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.62);
 }
 
 .stat-value--red {
@@ -88,10 +183,14 @@
 /* --- RESPONSIVE MÓVIL --- */
 @media (max-width: 768px) {
   .profile-banner {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
-    padding: 20px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 18px;
+    padding: 58px 18px 22px;
+    background-image:
+      linear-gradient(180deg, rgba(8, 8, 12, 0.35) 0%, rgba(8, 8, 12, 0.72) 100%),
+      var(--banner-image, none),
+      var(--banner-fallback, linear-gradient(135deg, #1e1e24, #2b2b36));
   }
 
   .profile-stats-container {
@@ -99,8 +198,8 @@
     width: 100%;
   }
 
-  .profile-banner div {
-    justify-content: center;
+  .btn-edit-banner {
+    opacity: 1;
   }
 
   .records-grid {

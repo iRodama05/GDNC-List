@@ -1,4 +1,4 @@
-import { supabase, IS_DEV_MODE, DEV_USER, getCurrentUser } from './config.js';
+import { supabase, getCurrentUser } from './config.js';
 
 const btnLogin = document.getElementById('btn-login');
 const authSection = document.getElementById('auth-section');
@@ -37,13 +37,11 @@ async function checkUserStatus() {
     if (user) {
         currentUserUid = user.id;
         
-        const { data: perfil } = IS_DEV_MODE
-            ? { data: DEV_USER }
-            : await supabase
-                .from('usuarios')
-                .select('*')
-                .eq('uid', user.id)
-                .single();
+        const { data: perfil } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('uid', user.id)
+            .single();
 
         if (perfil) {
             // --- NUEVO: SINCRONIZACIÓN DE FOTO DE PERFIL ---

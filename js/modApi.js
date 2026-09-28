@@ -1,8 +1,8 @@
-import { supabase } from './config.js';
+import { supabase, getCurrentUser } from './config.js';
 
 // Devuelve { user, esMod }. user es null si no hay sesión.
 export async function verificarAccesoMod() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) return { user: null, esMod: false };
 
     const { data: perfil } = await supabase
