@@ -32,4 +32,4 @@ export async function getCurrentUser() {
 }
 
 // --- VERSIÓN DE LA APLICACIÓN ---
-export const APP_VERSION = "1.0.0 release";
+export const APP_VERSION = "1.0.1 release";

@@ -44,7 +44,7 @@
 .profile-banner__identity {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   min-width: 0;
   position: relative;
@@ -56,7 +56,7 @@
   font-size: 2.4rem;
   line-height: 1.1;
   color: #ffffff;
-  text-align: center;
+  text-align: left;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9);
   overflow-wrap: anywhere;
 }
@@ -65,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #ffffff;
+  color: var(--color-discord);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.4px;
@@ -191,6 +191,14 @@
       linear-gradient(180deg, rgba(8, 8, 12, 0.35) 0%, rgba(8, 8, 12, 0.72) 100%),
       var(--banner-image, none),
       var(--banner-fallback, linear-gradient(135deg, #1e1e24, #2b2b36));
+  }
+
+  .profile-banner__identity {
+    align-items: center;
+  }
+
+  .profile-banner__name {
+    text-align: center;
   }
 
   .profile-stats-container {
