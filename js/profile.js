@@ -1,4 +1,4 @@
-import { supabase } from './config.js';
+import { supabase, IS_DEV_MODE, DEV_USER, getCurrentUser } from './config.js';
 
 // ==========================================
 // 1. CONFIGURACIÓN INICIAL
@@ -28,6 +28,7 @@ async function cargarPerfilCompleto() {
     if (!targetUid) return profileBanner.innerHTML = "<p style='color: var(--color-error);'>Usuario no especificado.</p>";
 
     let isMod = false;
+<<<<<<< HEAD
     let isOwner = false; // <-- Aquí renace la variable
 
     const { data: { user: sessionUser } } = await supabase.auth.getUser();
@@ -42,6 +43,18 @@ async function cargarPerfilCompleto() {
             .select('rol').eq('uid', sessionUser.id).maybeSingle();
         if (viewerProfile && viewerProfile.rol === 'mod') {
             isMod = true;
+=======
+    if (IS_DEV_MODE) {
+        isMod = DEV_USER.rol === 'mod';
+    } else {
+        const { data: { user: sessionUser } } = await supabase.auth.getUser();
+        if (sessionUser) {
+            const { data: viewerProfile } = await supabase.from('usuarios')
+                .select('rol').eq('uid', sessionUser.id).maybeSingle();
+            if (viewerProfile && viewerProfile.rol === 'mod') {
+                isMod = true;
+            }
+>>>>>>> main
         }
     }
 
@@ -281,7 +294,7 @@ async function abrirModalComentarios() {
     const { count: likes } = await supabase.from('submit_likes').select('*', { count: 'exact', head: true }).eq('submit_id', currentSubmitId);
     likeCountDisplay.textContent = likes || 0;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (user) {
         const { data: miLike } = await supabase.from('submit_likes').select('id').eq('submit_id', currentSubmitId).eq('user_uid', user.id).maybeSingle();
         if (miLike) {
@@ -319,7 +332,7 @@ btnSendComment.addEventListener('click', async () => {
     const texto = newCommentInput.value.trim();
     if (!texto || !currentSubmitId) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) return alert("Debes iniciar sesión para comentar.");
 
     btnSendComment.disabled = true;
@@ -331,7 +344,7 @@ btnSendComment.addEventListener('click', async () => {
 });
 
 btnLikeSubmit.addEventListener('click', async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     if (!user) return alert("Debes iniciar sesión para dar like.");
 
     const { data: miLike } = await supabase.from('submit_likes').select('id').eq('submit_id', currentSubmitId).eq('user_uid', user.id).maybeSingle();
