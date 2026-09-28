@@ -6,9 +6,13 @@ export const CUSTOM_BANNER_ID = 'custom';
 // `imagen` vive en /img/banners. `fallback` se ve si el archivo todavía no existe.
 export const BANNER_REWARDS = [
     { pts: 0, id: 'default', nombre: 'Clásico', imagen: null, fallback: 'linear-gradient(135deg, #1e1e24, #2b2b36)' },
+    { pts: 10, id: 'banner_10', nombre: 'Novato', imagen: '/img/banners/banner_10.svg', fallback: 'linear-gradient(90deg, #121826, #6d8bb5)' },
     { pts: 25, id: 'banner_25', nombre: 'Principiante', imagen: '/img/banners/banner_25.svg', fallback: 'linear-gradient(90deg, #0b3d4a, #43cea2)' },
     { pts: 50, id: 'banner_50', nombre: 'Avanzado', imagen: '/img/banners/banner_50.svg', fallback: 'linear-gradient(90deg, #ff512f, #dd2476)' },
     { pts: 100, id: 'banner_100', nombre: 'Veterano', imagen: '/img/banners/banner_100.svg', fallback: 'linear-gradient(90deg, #0f3d2e, #93f9b9)' },
+    { pts: 200, id: 'banner_200', nombre: 'Experto', imagen: '/img/banners/banner_200.svg', fallback: 'linear-gradient(90deg, #2a1604, #ffe08a)' },
+    { pts: 400, id: 'banner_400', nombre: 'Maestro', imagen: '/img/banners/banner_400.svg', fallback: 'linear-gradient(90deg, #14082a, #7f5cff)' },
+    { pts: 800, id: 'banner_800', nombre: 'Leyenda', imagen: '/img/banners/banner_800.svg', fallback: 'linear-gradient(90deg, #1a0610, #f5c16c)' },
     { pts: 1200, id: CUSTOM_BANNER_ID, nombre: 'Personalizado', imagen: null, fallback: 'linear-gradient(135deg, #2b2b36, #1e1e24)' }
 ];
 
