@@ -4,15 +4,16 @@ import { verificarAccesoMod, obtenerSubmitsPendientes, rechazarSubmit, aceptarSu
 const pendientesContainer = document.getElementById('pendientes-container');
 
 async function initModPanel() {
-    if (IS_DEV_MODE) return cargarPendientes();
-
     // 1. Verificamos sesión y permisos
     const { user, esMod } = await verificarAccesoMod();
-    if (!user) return window.location.replace('index.html');
 
-    if (!esMod) {
-        alert("Acceso denegado. No eres moderador.");
-        return window.location.replace('index.html');
+    if (!user || !esMod) {
+        if (IS_DEV_MODE) {
+            console.warn('[DEV MODE] El usuario de desarrollo no es mod en la base de datos; se omite la redirección.');
+        } else {
+            if (user) alert("Acceso denegado. No eres moderador.");
+            return window.location.replace('index.html');
+        }
     }
 
     cargarPendientes();

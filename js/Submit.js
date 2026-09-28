@@ -1,4 +1,4 @@
-import { supabase } from './config.js';
+import { supabase, getCurrentUser } from './config.js';
 
 const btnOpenSubmit = document.getElementById('btn-open-submit');
 const submitModal = document.getElementById('submit-modal');
@@ -10,7 +10,7 @@ let currentUserData = null;
 
 // 1. Mostrar el botón solo si el usuario tiene sesión y perfil vinculado
 async function initSubmitButton() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
     
     if (user) {
         const { data } = await supabase.from('usuarios').select('gd_username').eq('uid', user.id).single();

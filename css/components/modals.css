@@ -138,15 +138,63 @@ padding-right: 5px;
 }
 
 /* STREAMING_CHUNK: Opciones de Banners... */
+.banner-modal__hint {
+margin: 4px 0 0;
+color: var(--text-muted);
+font-size: 0.8rem;
+max-width: 340px;
+}
+
+.banner-file-input {
+display: none;
+}
+
+.banner-feedback {
+margin: 12px 0 0;
+font-size: 0.85rem;
+color: var(--text-main);
+}
+
 .banner-option {
-height: 80px;
+position: relative;
+height: 96px;
 border-radius: 8px;
 cursor: pointer;
 border: 2px solid transparent;
 display: flex;
 align-items: center;
 justify-content: center;
+background-color: #1e1e24;
+background-image:
+  linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.16)),
+  var(--banner-image, none),
+  var(--banner-fallback, #1e1e24);
+background-size: cover;
+background-position: center;
 transition: transform 0.2s, border-color 0.2s;
+}
+
+.banner-option--empty {
+border-style: dashed;
+border-color: rgba(255, 255, 255, 0.35);
+}
+
+.banner-upload-btn {
+position: absolute;
+right: 10px;
+bottom: 8px;
+border: 1px solid rgba(255, 255, 255, 0.4);
+background: rgba(0, 0, 0, 0.5);
+color: #ffffff;
+border-radius: 999px;
+padding: 4px 10px;
+font-size: 0.75rem;
+cursor: pointer;
+backdrop-filter: blur(6px);
+}
+
+.banner-upload-btn:hover {
+background: rgba(0, 0, 0, 0.75);
 }
 
 .banner-option:hover {

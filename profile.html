@@ -91,12 +91,15 @@
     <div id="banner-modal" class="modal-overlay">
         <div class="banner-modal-content">
             <div class="modal-header">
-                <h2>Elige tu Banner</h2>
-                <button id="btn-close-banner-modal" class="btn-close-icon">&times;</button>
+                <div>
+                    <h2>Elige tu banner</h2>
+                    <p id="banner-points-label" class="banner-modal__hint"></p>
+                </div>
+                <button id="btn-close-banner-modal" class="btn-close-icon" type="button">&times;</button>
             </div>
-            <div id="banner-list" class="banner-scroll-list">
-                <!-- JavaScript inyectará las opciones aquí -->
-            </div>
+            <div id="banner-list" class="banner-scroll-list"></div>
+            <p id="banner-feedback" class="banner-feedback" hidden></p>
+            <input type="file" id="banner-file-input" class="banner-file-input" accept="image/png,image/jpeg,image/webp">
         </div>
     </div>
 

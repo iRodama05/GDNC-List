@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 400" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="grove" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#07281c"/>
+      <stop offset="0.6" stop-color="#1d976c"/>
+      <stop offset="1" stop-color="#93f9b9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="400" fill="url(#grove)"/>
+  <circle cx="250" cy="80" r="140" fill="#d8ffe8" opacity="0.22"/>
+  <path d="M0 180 L220 280 L480 140 L820 320 L1140 160 L1600 260 L1600 400 L0 400 Z" fill="#04160f" opacity="0.42"/>
+  <path d="M0 270 L300 210 L640 340 L1000 200 L1400 310 L1600 240 L1600 400 L0 400 Z" fill="#93f9b9" opacity="0.2"/>
+</svg>
