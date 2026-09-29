@@ -1,0 +1,10 @@
+# Configuraciones locales del editor
+.vscode/
+
+# Archivos temporales locales de Supabase
+supabase/.temp/
+
+# Archivos ocultos del sistema operativo (buenas prácticas)
+.DS_Store
+Thumbs.db
+desktop.ini
