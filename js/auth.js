@@ -44,12 +44,12 @@ async function checkUserStatus() {
             .single();
 
         if (perfil) {
-            // --- NUEVO: SINCRONIZACIÓN DE FOTO DE PERFIL ---
+            // --- Sincronización de foto de perfil ---
             const authAvatar = user.user_metadata?.avatar_url;
             if (authAvatar && authAvatar !== perfil.avatar_url) {
-                // Actualizamos la base de datos silenciosamente
+                // Actualizar la base de datos silenciosamente
                 await supabase.from('usuarios').update({ avatar_url: authAvatar }).eq('uid', user.id);
-                // Actualizamos la variable local para que se muestre bien ahora mismo
+                // Actualizar la variable local para que se muestre bien ahora mismo
                 perfil.avatar_url = authAvatar;
             }
             // ------------------------------------------------
@@ -128,7 +128,7 @@ async function checkUserStatus() {
                     <span id="inbox-dot" class="inbox-dot ${hasUnread ? 'is-unread ' + dotClass : ''}"></span>
                 `;
 
-                // --- NUEVO: Agregamos onerror al tag <img> para evitar fotos rotas ---
+                // --- Onerror del avatar ---
                 authSection.innerHTML = `
                     <div class="nav-user-profile">
                         <a href="profile.html?uid=${perfil.uid}">

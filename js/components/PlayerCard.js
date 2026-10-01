@@ -18,7 +18,7 @@ export function PlayerCard(player, rank) {
         hardestsHTML = '<span class="hardest-item__empty">Sin récords registrados</span>';
     }
 
-    // --- NUEVO: Agregado el onerror al avatar ---
+    // --- Onerror del avatar ---
     return `
         <a href="profile.html?uid=${player.uid}" class="player-card ${rankClass}">
             <div class="player-card__rank-number">#${rank}</div>

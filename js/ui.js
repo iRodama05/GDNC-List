@@ -1,7 +1,7 @@
 import { APP_VERSION } from './config.js';
 
 // --- DEBUG ---
-console.log("ui.js cargado correctamente. Versión:", APP_VERSION);
+// console.log("ui.js cargado correctamente. Versión:", APP_VERSION);
 
 // 1. INYECCIÓN DE LA VERSIÓN
 const versionTag = document.createElement("div");
