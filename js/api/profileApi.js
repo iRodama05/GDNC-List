@@ -4,7 +4,7 @@ const BANNER_BUCKET = 'banners';
 
 // Deben coincidir con file_size_limit y allowed_mime_types del bucket 'banners'.
 export const BANNER_MAX_BYTES = 5 * 1024 * 1024;
-export const BANNER_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+export const BANNER_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
 export async function actualizarBannerActivo(uid, bannerId) {
     const { error } = await supabase

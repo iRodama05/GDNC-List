@@ -1,4 +1,5 @@
 import { supabase, getCurrentUser } from './config.js';
+import { avatarAnimado } from './avatar.js';
 
 const btnLogin = document.getElementById('btn-login');
 const authSection = document.getElementById('auth-section');
@@ -59,7 +60,7 @@ async function checkUserStatus() {
             } else {
                 const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
                 const roleText = perfil.rol === 'mod' ? 'MODERADOR' : 'JUGADOR';
-                const avatar = perfil.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                const avatar = avatarAnimado(perfil.avatar_url);
 
                 let modButtonHTML = '';
                 if (perfil.rol === 'mod') {

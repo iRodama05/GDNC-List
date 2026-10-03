@@ -1,10 +1,12 @@
+import { avatarAnimado } from '../avatar.js';
+
 export function PlayerCard(player, rank) {
     let rankClass = "";
     if (rank === 1) rankClass = "player-card--rank-1";
     if (rank === 2) rankClass = "player-card--rank-2";
     if (rank === 3) rankClass = "player-card--rank-3";
 
-    const avatar = player.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png';
+    const avatar = avatarAnimado(player.avatar_url);
 
     let hardestsHTML = '';
     if (player.top_3_hardests && player.top_3_hardests.length > 0) {

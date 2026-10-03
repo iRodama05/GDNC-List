@@ -1,6 +1,7 @@
 import { supabase, getCurrentUser } from './config.js';
 import { actualizarBannerActivo, subirBannerPersonalizado, BANNER_MAX_BYTES, BANNER_MIME_TYPES } from './api/profileApi.js';
 import { ProfileBanner, BannerOption, BANNER_REWARDS, CUSTOM_BANNER_ID, resolverBanner, aplicarFondoBanner } from './components/ProfileBanner.js';
+import { avatarAnimado } from './avatar.js';
 
 // ==========================================
 // 1. CONFIGURACIÓN INICIAL
@@ -205,7 +206,7 @@ async function abrirModalComentarios() {
     commentsList.innerHTML = comentarios.map(com => `
         <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                <img src="${com.usuarios.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width: 24px; height: 24px; border-radius: 5px; object-fit: cover;" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
+                <img src="${avatarAnimado(com.usuarios.avatar_url)}" class="comment-avatar" alt="" onerror="this.onerror=null;this.src='${avatarAnimado()}';">
                 <span style="font-weight: bold; color: var(--color-discord); font-size: 0.9rem;">${com.usuarios.gd_username}</span>
             </div>
             <p style="margin: 0; font-size: 0.9rem; color: var(--text-main); line-height: 1.4;">${com.texto}</p>
@@ -392,7 +393,7 @@ async function onArchivoBanner(event) {
     if (!file) return;
 
     if (!BANNER_MIME_TYPES.includes(file.type)) {
-        return mostrarFeedbackBanner('Usa una imagen PNG, JPG o WEBP.');
+        return mostrarFeedbackBanner('Usa una imagen PNG, JPG, WEBP o GIF.');
     }
     if (file.size > BANNER_MAX_BYTES) {
         return mostrarFeedbackBanner('La imagen no puede pesar más de 5 MB.');

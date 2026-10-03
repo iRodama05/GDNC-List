@@ -1,4 +1,4 @@
-const DEFAULT_AVATAR = 'https://cdn.discordapp.com/embed/avatars/0.png';
+import { avatarAnimado } from '../avatar.js';
 
 export const CUSTOM_BANNER_ID = 'custom';
 
@@ -20,13 +20,30 @@ const escapeHtml = (text = '') => String(text).replace(/[&<>"']/g, (char) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
 
-const cssUrl = (url) => `url('${String(url).replace(/['()\\\s]/g, encodeURIComponent)}')`;
-
 function variablesDeBanner(banner) {
     return {
-        '--banner-image': banner.imagen ? cssUrl(banner.imagen) : 'none',
         '--banner-fallback': banner.fallback
     };
+}
+
+// El GIF va en un <img>: como fondo CSS, con varias capas y background-size, el navegador lo deja en el primer frame.
+function sincronizarMediaBanner(element, imagen) {
+    let media = element.querySelector('.profile-banner__media');
+
+    if (!imagen) {
+        media?.remove();
+        return;
+    }
+
+    if (!media) {
+        media = document.createElement('img');
+        media.className = 'profile-banner__media';
+        media.alt = '';
+        media.decoding = 'async';
+        element.prepend(media);
+    }
+
+    if (media.getAttribute('src') !== imagen) media.src = imagen;
 }
 
 const estiloInline = (vars) => Object.entries(vars).map(([key, value]) => `${key}: ${value}`).join('; ');
@@ -45,6 +62,7 @@ export function resolverBanner(perfil) {
 
 export function aplicarFondoBanner(element, banner) {
     Object.entries(variablesDeBanner(banner)).forEach(([key, value]) => element.style.setProperty(key, value));
+    sincronizarMediaBanner(element, banner.imagen);
 }
 
 export function ProfileBanner(perfil, { isOwner, isMod }) {
@@ -63,7 +81,7 @@ export function ProfileBanner(perfil, { isOwner, isMod }) {
     ` : '';
 
     return `
-        <img src="${escapeHtml(perfil.avatar_url || DEFAULT_AVATAR)}" alt="Avatar de ${escapeHtml(perfil.gd_username)}" class="profile-avatar-giant" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+        <img src="${escapeHtml(avatarAnimado(perfil.avatar_url))}" alt="Avatar de ${escapeHtml(perfil.gd_username)}" class="profile-avatar-giant" onerror="this.onerror=null;this.src='${escapeHtml(avatarAnimado())}';">
 
         <div class="profile-banner__identity">
             <h1 class="profile-banner__name">${escapeHtml(perfil.gd_username)}</h1>
@@ -98,10 +116,14 @@ export function BannerOption(banner, { unlocked, selected, customUrl }) {
 
     let badgeText = banner.nombre;
     if (!unlocked) badgeText = `🔒 ${banner.nombre} · ${banner.pts} PTS`;
-    else if (sinImagen) badgeText = 'Sube tu propia imagen';
+    else if (sinImagen) badgeText = 'Sube tu imagen o GIF';
 
     const uploadButton = esCustom && unlocked
         ? `<button type="button" class="banner-upload-btn" data-action="upload">${customUrl ? 'Cambiar imagen' : 'Subir imagen'}</button>`
+        : '';
+
+    const media = preview.imagen
+        ? `<img class="banner-option__media" src="${escapeHtml(preview.imagen)}" alt="">`
         : '';
 
     const classes = [
@@ -113,6 +135,7 @@ export function BannerOption(banner, { unlocked, selected, customUrl }) {
 
     return `
         <div class="${classes}" data-id="${banner.id}" data-unlocked="${unlocked}" style="${estiloInline(variablesDeBanner(preview))}">
+            ${media}
             <span class="banner-badge">${badgeText}</span>
             ${uploadButton}
         </div>
