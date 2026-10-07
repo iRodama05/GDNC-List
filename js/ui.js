@@ -1,4 +1,7 @@
 import { APP_VERSION } from './config.js';
+import { mountSiteCredit } from './components/SiteCredit.js';
+
+mountSiteCredit();
 
 // --- DEBUG ---
 // console.log("ui.js cargado correctamente. Versión:", APP_VERSION);

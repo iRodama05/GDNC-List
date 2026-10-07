@@ -10,3 +10,4 @@ Aquí importamos todos los módulos para no saturar el HTML
 @import url('./components/modals.css');
 @import url('./components/cards.css');
 @import url('./components/animations.css');
+@import url('./components/credits.css');

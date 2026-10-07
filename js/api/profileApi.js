@@ -1,5 +1,16 @@
 import { supabase } from '../config.js';
 
+export async function obtenerAvatarPorUid(uid) {
+    const { data, error } = await supabase
+        .from('usuarios')
+        .select('avatar_url')
+        .eq('uid', uid)
+        .maybeSingle();
+
+    if (error) throw error;
+    return data?.avatar_url || null;
+}
+
 const BANNER_BUCKET = 'banners';
 
 // Deben coincidir con file_size_limit y allowed_mime_types del bucket 'banners'.
