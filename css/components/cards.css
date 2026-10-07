@@ -1,304 +1,776 @@
-/* Grid del ranking general */
 /* =========================================
-   TARJETAS DE JUGADORES (RANKING Y PERFIL)
-   ========================================= */ 
-
+   1. FILA DEL RANKING (base, móvil y búsqueda)
+   ========================================= */
 .ranking-grid {
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
-	margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .player-card {
-	display: flex;
-	align-items: center;
-	gap: 20px;
-	padding: 15px 25px;
-	color: inherit;
-	text-decoration: none;
-	background-color: var(--bg-surface);
-	border-left: 5px solid transparent;
-	border-radius: 12px;
-	transition: transform 0.2s, background-color 0.2s;
+  --medal: var(--text-muted);
+  --medal-rgb: 168, 168, 179;
+
+  display: grid;
+  grid-template-columns: 44px 48px minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  grid-template-areas: "rank avatar info hardests points";
+  align-items: center;
+  column-gap: 16px;
+  padding: 14px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
 .player-card:hover {
-	background-color: var(--bg-surface-hover);
-	transform: translateX(5px);
+  background-color: var(--bg-surface-hover);
+  border-color: var(--line);
 }
 
-/* Colores de los rangos */
-.player-card--rank-1 {
-	border-left-color: var(--color-rank-1);
-	background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, var(--bg-surface) 20%);
+.player-card.is-filtered-out {
+  display: none !important;
 }
 
-.player-card--rank-2 {
-	border-left-color: var(--color-rank-2);
-	background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, var(--bg-surface) 20%);
+/* La fila espera fuera de pantalla y sube al asomarse. El podio de escritorio no usa esto. */
+.player-card.is-pending:not(.is-revealed):not(:focus) {
+  opacity: 0;
 }
 
+.player-card.is-entering {
+  animation: card-enter 360ms var(--ease-out) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card.is-pending:not(.is-revealed) {
+    opacity: 1;
+  }
+
+  .player-card.is-entering {
+    animation: none;
+  }
+}
+
+.player-card--rank-1 { --medal: var(--color-rank-1); --medal-rgb: var(--rgb-rank-1); }
+.player-card--rank-2 { --medal: var(--color-rank-2); --medal-rgb: var(--rgb-rank-2); }
+.player-card--rank-3 { --medal: var(--color-rank-3); --medal-rgb: var(--rgb-rank-3); }
+
+.player-card--rank-1,
+.player-card--rank-2,
 .player-card--rank-3 {
-	border-left-color: var(--color-rank-3);
-	background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, var(--bg-surface) 20%);
+  border-color: rgba(var(--medal-rgb), 0.24);
+  background-image: linear-gradient(90deg, rgba(var(--medal-rgb), 0.08), transparent 45%);
 }
 
-.player-card__rank-number {
-	min-width: 50px;
-	color: var(--text-muted);
-	font-size: 1.5rem;
-	font-weight: bold;
+.player-card__rank {
+  grid-area: rank;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
-.player-card--rank-1 .player-card__rank-number {
-	color: var(--color-rank-1);
+.player-card__rank-hash {
+  opacity: 0.55;
 }
 
-.player-card--rank-2 .player-card__rank-number {
-	color: var(--color-rank-2);
+/* Medalla: cubo de metal con el número, como el icono de un jugador de GD. */
+.player-card--rank-1 .player-card__rank,
+.player-card--rank-2 .player-card__rank,
+.player-card--rank-3 .player-card__rank {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border-radius: 9px;
+  background: var(--medal);
+  color: #111115;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.18);
 }
 
-.player-card--rank-3 .player-card__rank-number {
-	color: var(--color-rank-3);
+.player-card--rank-1 .player-card__rank-hash,
+.player-card--rank-2 .player-card__rank-hash,
+.player-card--rank-3 .player-card__rank-hash {
+  display: none;
 }
 
-/* Avatares e información de la tarjeta */
 .player-card__avatar {
-	width: 60px;
-	height: 60px;
-	object-fit: cover;
-	border-radius: 12px;
+  grid-area: avatar;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+  object-fit: cover;
+  background: var(--bg-surface-alt);
 }
 
 .player-card__info {
-	flex: 1;
+  grid-area: info;
+  min-width: 0;
 }
 
 .player-card__title {
-	margin-bottom: 3px;
-	font-size: 1.3rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .player-card__discord {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	color: var(--color-discord);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.player-card__discord svg {
+  flex: 0 0 auto;
+  color: var(--color-discord);
 }
 
 .player-card__discord-text {
-	font-size: 0.85rem;
-	font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Sección de hardests */
+/* Los tres récords que suman los puntos, en una línea que puede partirse. */
 .player-card__hardests {
-	display: flex;
-	flex: 2;
-	flex-direction: column;
-	gap: 5px;
-	padding-left: 20px;
-	border-left: 1px solid var(--border-default);
+  grid-area: hardests;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  row-gap: 2px;
+  min-width: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .hardest-item {
-	display: flex;
-	justify-content: space-between;
-	padding: 3px 10px;
-	font-size: 0.85rem;
-	background-color: rgba(255, 255, 255, 0.03);
-	border-radius: 5px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* El gap de .hardest-item ya separa el punto del nombre: el margen derecho lo completa hasta 8px. */
+.hardest-item + .hardest-item::before {
+  content: "·";
+  margin: 0 3px 0 8px;
+  color: var(--text-placeholder);
+}
+
+.hardest-item__name {
+  color: var(--text-main);
 }
 
 .hardest-item__pts {
-	color: var(--color-accent);
-	font-weight: bold;
+  font-variant-numeric: tabular-nums;
 }
 
-.hardest-item__empty {
-	color: var(--text-placeholder);
-	font-size: 0.9rem;
-	font-style: italic;
+.hardest-item--empty {
+  font-style: normal;
 }
 
-/* Puntos para tarjetas de lista normal */
 .player-card__points {
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-	min-width: 100px;
-	padding: 10px 20px;
-	color: var(--color-brand-red);
-	background-color: rgba(255, 50, 50, 0.1);
-	border: 1px solid var(--color-brand-red);
-	border-radius: 8px;
+  grid-area: points;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 64px;
+  line-height: 1.1;
 }
 
 .player-card__points-value {
-	font-size: 1.5rem;
-	font-weight: bold;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .player-card__points-label {
-	font-size: 0.7rem;
-	font-weight: bold;
-	letter-spacing: 1px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
 }
 
-/* Tarjetas móvil */
-@media (max-width: 768px) {
-	.player-card {
-		position: relative;
-		flex-direction: column;
-		gap: 15px;
-		align-items: center;
-		padding: 20px;
-		text-align: center;
-	}
-
-	.player-card__rank-number {
-		position: absolute;
-		top: 15px;
-		left: 15px;
-		margin: 0;
-	}
-
-	.player-card__hardests {
-		display: none;
-	}
-
-	.player-card__discord {
-		justify-content: center;
-	}
+.search-empty {
+  padding: 32px 16px;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* =========================================
-   PODIO (TOP 3)
+   2. PODIO (la firma visual del sitio)
    ========================================= */
-
 .podium-container {
-	display: grid;
-	grid-template-columns: 1fr 1.1fr 1fr;
-	gap: 15px;
-	align-items: end;
-	margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-/* El podio se activa en pantallas grandes cuando no se está buscando. */
+.podium-container:empty {
+  display: none;
+}
+
+/* En lista (móvil o buscando) el orden vuelve a ser 1-2-3 aunque el HTML venga 2-1-3. */
+.podium-container .player-card--rank-1 { order: 1; }
+.podium-container .player-card--rank-2 { order: 2; }
+.podium-container .player-card--rank-3 { order: 3; }
+
 @media (min-width: 769px) {
-	.podium-container.is-active .player-card {
-		position: relative;
-		flex-direction: column;
-		justify-content: flex-start;
-		padding: 30px 20px 20px;
-		text-align: center;
-	}
+  .podium-container.is-active {
+    display: grid;
+    grid-template-columns: 1fr 1.12fr 1fr;
+    align-items: end;
+    gap: 16px;
+    margin: 28px 0 32px;
+  }
 
-	/* Mueve el número de ranking arriba como un pin. */
-	.podium-container.is-active .player-card__rank-number {
-		position: absolute;
-		top: -15px;
-		left: 50%;
-		padding: 5px 20px;
-		margin: 0;
-		font-size: 1.2rem;
-		background: var(--bg-surface);
-		border: 2px solid;
-		border-radius: 20px;
-		transform: translateX(-50%);
-	}
+  .podium-container.is-active .player-card--rank-1 { grid-column: 2; }
+  .podium-container.is-active .player-card--rank-2 { grid-column: 1; }
+  .podium-container.is-active .player-card--rank-3 { grid-column: 3; }
 
-	.podium-container.is-active .player-card--rank-1 .player-card__rank-number {
-		border-color: var(--color-rank-1);
-	}
+  .podium-container.is-active .player-card {
+    grid-row: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 18px;
+    text-align: center;
+    border-color: rgba(var(--medal-rgb), 0.3);
+    background-image: radial-gradient(120% 70% at 50% 0%, rgba(var(--medal-rgb), 0.16), transparent 62%);
+    animation: podium-rise 520ms var(--ease-out) both;
+  }
 
-	.podium-container.is-active .player-card--rank-2 .player-card__rank-number {
-		border-color: var(--color-rank-2);
-	}
+  .podium-container.is-active .player-card:hover {
+    border-color: rgba(var(--medal-rgb), 0.55);
+  }
 
-	.podium-container.is-active .player-card--rank-3 .player-card__rank-number {
-		border-color: var(--color-rank-3);
-	}
+  /* Se revela del tercero al primero. */
+  .podium-container.is-active .player-card--rank-2 { animation-delay: 90ms; }
+  .podium-container.is-active .player-card--rank-1 {
+    padding-top: 48px;
+    animation-delay: 180ms;
+    box-shadow: 0 24px 64px -28px rgba(var(--rgb-rank-1), 0.45);
+  }
 
-	/* Ajustes de avatares en el podio. */
-	.podium-container.is-active .player-card__avatar {
-		width: 80px;
-		height: 80px;
-	}
+  .podium-container.is-active .player-card__rank {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.0625rem;
+    transform: translateX(-50%);
+    box-shadow:
+      0 0 0 4px var(--bg-base),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+      0 8px 18px rgba(var(--medal-rgb), 0.3);
+  }
 
-	.podium-container.is-active .player-card--rank-1 .player-card__avatar {
-		width: 105px;
-		height: 105px;
-		border: 4px solid var(--color-rank-1);
-	}
+  .podium-container.is-active .player-card__avatar {
+    order: 0;
+    width: 84px;
+    height: 84px;
+    margin-bottom: 14px;
+    border-radius: 20px;
+    box-shadow: 0 0 0 3px var(--bg-surface), 0 0 0 5px rgba(var(--medal-rgb), 0.85);
+  }
 
-	.podium-container.is-active .player-card__discord {
-		justify-content: center;
-	}
+  .podium-container.is-active .player-card--rank-1 .player-card__avatar {
+    width: 104px;
+    height: 104px;
+    border-radius: 24px;
+  }
 
-	/* Posicionamiento de los elementos internos del podio. */
-	.podium-container.is-active .player-card__info {
-		order: 1;
-	}
+  .podium-container.is-active .player-card__info {
+    order: 1;
+    width: 100%;
+  }
 
-	.podium-container.is-active .player-card__points {
-		width: 100%;
-		padding: 0;
-		margin-top: 15px;
-		background: transparent;
-		border: none;
-		order: 2;
-	}
+  .podium-container.is-active .player-card__title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+  }
 
-	/* Colores de puntos por medalla. */
-	.podium-container.is-active .player-card--rank-1 .player-card__points-value {
-		color: var(--color-rank-1);
-		font-size: 2.2rem;
-		text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-	}
+  .podium-container.is-active .player-card--rank-1 .player-card__title {
+    font-size: 1.3125rem;
+  }
 
-	.podium-container.is-active .player-card--rank-2 .player-card__points-value {
-		color: var(--color-rank-2);
-		font-size: 2rem;
-		text-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
-	}
+  .podium-container.is-active .player-card__discord {
+    justify-content: center;
+  }
 
-	.podium-container.is-active .player-card--rank-3 .player-card__points-value {
-		color: var(--color-rank-3);
-		font-size: 1.8rem;
-		text-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
-	}
+  .podium-container.is-active .player-card__points {
+    order: 2;
+    align-items: center;
+    margin: 14px 0 16px;
+  }
 
-	.podium-container.is-active .player-card__points-label {
-		color: var(--text-muted);
-	}
+  .podium-container.is-active .player-card__points-value {
+    color: var(--medal);
+    font-size: 2.25rem;
+  }
 
-	/* Mueve los hardests abajo como detalle final. */
-	.podium-container.is-active .player-card__hardests {
-		width: 100%;
-		padding-top: 10px;
-		padding-left: 0;
-		margin-top: 15px;
-		border-top: 1px solid var(--border-default);
-		border-left: none;
-		order: 3;
-	}
+  .podium-container.is-active .player-card--rank-1 .player-card__points-value {
+    font-size: 2.75rem;
+  }
+
+  .podium-container.is-active .player-card__points-label {
+    margin-top: 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .podium-container.is-active .player-card__hardests {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid var(--line-subtle);
+  }
+
+  .podium-container.is-active .hardest-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 2px;
+  }
+
+  .podium-container.is-active .hardest-item + .hardest-item::before {
+    content: none;
+  }
+
+  .podium-container.is-active .hardest-item__name {
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .podium-container.is-active .hardest-item--empty {
+    justify-content: center;
+  }
 }
 
-/* En búsquedas, el podio se colapsa a una lista normal. */
-.podium-container.is-searching {
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	margin-bottom: 15px;
+/* =========================================
+   3. RESPONSIVE DE LA FILA
+   ========================================= */
+@media (max-width: 900px) and (min-width: 769px) {
+  .player-card {
+    grid-template-columns: 40px 48px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank avatar info points"
+      ". . hardests hardests";
+    row-gap: 6px;
+  }
 }
 
 @media (max-width: 768px) {
-	.podium-container {
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		margin-bottom: 15px;
-	}
+  .player-card {
+    grid-template-columns: 32px 44px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "rank avatar info points"
+      ". . hardests hardests";
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .player-card__avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .player-card__title {
+    font-size: 1rem;
+  }
+
+  .player-card__points-value {
+    font-size: 1.25rem;
+  }
+
+  /* En una columna estrecha la línea se parte y el "·" quedaría al inicio: un récord por línea. */
+  .player-card__hardests {
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 0;
+  }
+
+  .hardest-item {
+    max-width: 100%;
+  }
+
+  .hardest-item + .hardest-item::before {
+    content: none;
+  }
+
+  .hardest-item__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hardest-item__pts {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* =========================================
+   4. RÉCORDS DEL PERFIL
+   ========================================= */
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.record-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  transition: border-color var(--motion-fast) ease;
+}
+
+.record-card:hover {
+  border-color: var(--line);
+}
+
+/* Miniatura que se cambia por el reproductor al pulsarla. */
+.record-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  padding: 0;
+  border: none;
+  background: #000000;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.record-media__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 400ms var(--ease-out), opacity var(--motion-base) ease;
+}
+
+.record-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 40%, rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+.record-media:hover .record-media__thumb {
+  transform: scale(1.03);
+}
+
+.record-media__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  background: rgba(10, 10, 13, 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translate(-50%, -50%);
+  transition: transform var(--motion-fast) ease, background-color var(--motion-fast) ease;
+}
+
+.record-media__play .icon {
+  margin-left: 3px;
+}
+
+.record-media:hover .record-media__play {
+  background: rgba(10, 10, 13, 0.8);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.record-media__source {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.record-media--playing {
+  cursor: default;
+}
+
+.record-media--playing::after {
+  content: none;
+}
+
+.record-media iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.record-media--external {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background:
+    radial-gradient(80% 80% at 50% 20%, rgba(255, 255, 255, 0.06), transparent 70%),
+    #0c0c10;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+  cursor: default;
+}
+
+.record-media--external::after {
+  content: none;
+}
+
+.record-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px 12px;
+}
+
+.record-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.record-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.record-points {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.record-points__label {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.record-id {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.record-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.record-footer .btn-ghost:first-child {
+  margin-left: -10px;
+}
+
+.record-actions {
+  display: flex;
+  gap: 4px;
+  margin-right: -6px;
+}
+
+.record-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.record-divider::before,
+.record-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-subtle);
+}
+
+/* =========================================
+   5. PANEL DE MODERACIÓN
+   ========================================= */
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card.is-leaving {
+  animation: card-out 240ms var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+.review-card {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line-subtle);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+
+.review-card__media .record-media {
+  height: 100%;
+  min-height: 100%;
+}
+
+.review-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.review-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.review-card__title {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.review-card__meta {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.review-card__meta strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.review-card__actions,
+.review-reject__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.review-card__actions .field {
+  margin: 0;
+}
+
+.review-card__actions .input-field {
+  width: 7.5rem;
+}
+
+.review-card__feedback {
+  margin-top: -6px;
+  text-align: left;
+}
+
+.review-reject {
+  margin-top: auto;
+  padding: 14px;
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  border-radius: var(--radius-control);
+  background: rgba(255, 107, 107, 0.06);
+}
+
+.review-reject__label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.review-reject__row {
+  margin-top: 0;
+}
+
+.review-reject__row .select-field {
+  flex: 1 1 220px;
+}
+
+@media (max-width: 768px) {
+  .review-card {
+    grid-template-columns: 1fr;
+  }
+
+  .review-card__media .record-media {
+    height: auto;
+  }
+
+  .review-card__body {
+    padding: 16px;
+  }
+
+  .records-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -6,21 +6,22 @@ No hay framework ni bundler. La página son tres HTML, módulos de JavaScript va
 
 ## Cómo está repartido el código
 
-Cada pantalla carga los mismos tres cimientos y después su propio controlador:
+Cada pantalla carga los mismos cuatro cimientos y después su propio controlador:
 
 | Pantalla | Qué muestra | Controlador |
 | --- | --- | --- |
-| `index.html` | Ranking, búsqueda, modal para subir un récord | `js/db.js` y `js/Submit.js` |
+| `index.html` | Ranking y búsqueda | `js/db.js` |
 | `profile.html?uid=...` | Banner, récords aceptados, comentarios, likes | `js/profile.js` |
 | `mod-panel.html` | Cola de récords pendientes | `js/mod.js` |
 
-Los tres HTML también cargan `js/config.js`, `js/ui.js` y `js/auth.js`. Esos no pintan el ranking ni el perfil: crean el cliente de Supabase, animan la interfaz compartida y arman el navbar según quién esté logueado.
+Los tres HTML también cargan `js/config.js`, `js/ui.js`, `js/auth.js` y `js/Submit.js`. Esos no pintan el ranking ni el perfil: crean el cliente de Supabase, montan el pie de página, arman el navbar según quién esté logueado y añaden el modal para subir un récord.
 
 La regla del proyecto es separar responsabilidades:
 
-- Las llamadas a Supabase van en `js/api/` (hoy `profileApi.js`; el panel de mods usa `js/modApi.js`, que todavía vive un nivel arriba).
-- El HTML repetido va en `js/components/` (`PlayerCard.js`, `ProfileBanner.js`).
-- El controlador de la vista (`db.js`, `profile.js`, `mod.js`) solo coordina: pide datos, elige qué pintar y engancha eventos.
+- Las llamadas a Supabase van en `js/api/`: `authApi.js` (sesión, buzón y verificación de GD), `rankingApi.js`, `submitApi.js`, `profileApi.js` y `modApi.js`.
+- El HTML repetido va en `js/components/`: las tarjetas (`PlayerCard.js`, `RecordCard.js`, `ReviewCard.js`, `CommentItem.js`), el banner (`ProfileBanner.js`), la cuenta del navbar (`NavAccount.js`), el formulario de envío (`SubmitModal.js`), los diálogos (`Dialog.js`), los esqueletos de carga (`Skeleton.js`), el pie con el crédito (`SiteCredit.js`) y los iconos SVG (`icons.js`).
+- El controlador de la vista (`auth.js`, `db.js`, `Submit.js`, `profile.js`, `mod.js`) solo coordina: pide datos, elige qué pintar y engancha eventos.
+- Lo compartido que no habla con Supabase ni genera HTML propio vive suelto en `js/`: `format.js` (escapar texto, enlaces seguros, puntos y fechas), `utils.js` (estado de carga de un botón, copiar al portapapeles) y `modal.js` (abrir y cerrar modales, y mantener el foco dentro).
 
 ```mermaid
 flowchart LR
@@ -31,44 +32,40 @@ flowchart LR
     end
 
     subgraph compartido [Siempre cargado]
-        Config[config.js]
         UI[ui.js]
         Auth[auth.js]
+        Submit[Submit.js]
     end
 
     subgraph vistas [Controladores]
         DB[db.js]
-        Submit[Submit.js]
         Profile[profile.js]
         Mod[mod.js]
     end
 
-    subgraph piezas [Piezas]
-        Card[PlayerCard.js]
-        Banner[ProfileBanner.js]
-        ProfileApi[api/profileApi.js]
-        ModApi[modApi.js]
-    end
+    Componentes["js/components: PlayerCard, RecordCard, ReviewCard, ProfileBanner, NavAccount, SubmitModal, Dialog…"]
+    Apis["js/api: authApi, rankingApi, submitApi, profileApi, modApi"]
 
-    Index --> Config
-    Index --> UI
-    Index --> Auth
     Index --> DB
-    Index --> Submit
     Perfil --> Profile
     Mods --> Mod
 
-    DB --> Card
-    Profile --> Banner
-    Profile --> ProfileApi
-    Mod --> ModApi
-    Auth --> Config
-    Submit --> Config
-    ProfileApi --> Config
-    ModApi --> Config
+    UI --> Componentes
+    Auth --> Componentes
+    Submit --> Componentes
+    DB --> Componentes
+    Profile --> Componentes
+    Mod --> Componentes
 
+    Auth --> Apis
+    Submit --> Apis
+    DB --> Apis
+    Profile --> Apis
+    Mod --> Apis
+
+    Apis --> Config[config.js]
     Config --> Supabase[(Supabase)]
-    Auth --> Proxy[gdbrowser-proxy]
+    Apis --> Proxy[gdbrowser-proxy]
     Proxy --> GDBrowser[gdbrowser.com]
 ```
 
@@ -84,9 +81,9 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 Ahí mismo están la URL del proyecto y la clave publicable. Esa clave está pensada para el navegador. La clave de servicio no debe entrar nunca en estos archivos.
 
-### Si quieres cambiar el número de versión de la esquina
+### Si quieres cambiar el número de versión del pie
 
-En `js/config.js`, la constante `APP_VERSION` es el texto que `js/ui.js` pinta fijo abajo a la derecha (`v1.0.2 release`, por ejemplo). `ui.js` no lee nada más: cambia el string y recarga.
+En `js/config.js`, la constante `APP_VERSION` es el texto que se ve a la derecha del pie de página (`v1.0.3 release`, por ejemplo). Lo pinta `mountSiteCredit()` de `js/components/SiteCredit.js`, que `ui.js` llama en cada página junto con el crédito “Hecho por…”. Cambia el string y recarga.
 
 ## Modo desarrollo
 
@@ -96,7 +93,7 @@ Ese id tiene que ser un `uid` real de la tabla `usuarios`. El rol, los puntos y 
 
 Hay un límite importante. Las escrituras siguen pasando por las políticas de Supabase. Si en localhost no hay una sesión de Discord de ese mismo usuario, vas a poder ver el perfil y el ranking, pero guardar un banner o aceptar un récord puede fallar en silencio. El propio `config.js` avisa de eso en la consola. La forma práctica de trabajar es iniciar sesión una vez en localhost con esa cuenta y dejar la sesión guardada.
 
-En `js/mod.js`, si el usuario de desarrollo no tiene `rol = 'mod'`, el panel no redirige al inicio: solo escribe un warning y sigue. Fuera de localhost, alguien sin rol de mod es mandado a `index.html`.
+En `js/mod.js`, si el usuario de desarrollo no tiene `rol = 'mod'`, el panel no se bloquea: solo escribe un warning y sigue. Fuera de localhost, alguien sin rol de mod ve un aviso de acceso restringido con un enlace de vuelta al ranking.
 
 ### Si quieres probar con otra cuenta
 
@@ -111,15 +108,15 @@ Si no hay usuario, el botón “Iniciar sesión con Discord” llama a `signInWi
 Si hay usuario, se busca su fila en `usuarios` por `uid`. A partir de ahí hay dos caminos:
 
 1. Falta `gd_username` o `gd_verificado` no es verdadero. Se abre `#gd-setup-modal` (ese modal solo existe en `index.html`) y no se pinta el navbar de jugador.
-2. El perfil ya está verificado. Se reemplaza `#auth-section` por avatar, nombre de GD, rol, puntos, logout y, si `rol === 'mod'`, el botón al panel. También aparece el buzón.
+2. El perfil ya está verificado. `NavAccount()` reemplaza `#auth-section` por la campana del buzón y un menú de cuenta: el botón muestra avatar, nombre de GD y puntos, y al abrirlo lleva a tu perfil, al panel si `rol === 'mod'` y a cerrar sesión. `ui.js` abre y cierra el menú (clic fuera, Escape o salir con Tab).
 
-El avatar se sincroniza solo. Si `user.user_metadata.avatar_url` de Discord no coincide con `usuarios.avatar_url`, `auth.js` actualiza la fila en silencio y usa la URL nueva en ese mismo render. Si la imagen se cae, el `onerror` del `<img>` cambia a `https://cdn.discordapp.com/embed/avatars/0.png`.
+Las consultas de este archivo están en `js/api/authApi.js`. El avatar se sincroniza solo. Si `user.user_metadata.avatar_url` de Discord no coincide con `usuarios.avatar_url`, `auth.js` actualiza la fila en silencio y usa la URL nueva en ese mismo render. Si la imagen se cae, el `onerror` del `<img>` cambia a `DEFAULT_AVATAR` de `js/avatar.js` (`https://cdn.discordapp.com/embed/avatars/0.png`).
 
 ### Cómo se verifica el nombre de Geometry Dash
 
-El jugador escribe su nombre. Al pulsar “Generar Código”, `auth.js` arma un string `GDNC-` más seis caracteres y lo guarda en `usuarios.codigo_verificacion_gd`. El modal pasa del paso 1 al paso 2 y le pide que publique ese código en los comentarios de su perfil de GD.
+El jugador escribe su nombre. Al pulsar “Generar código”, `auth.js` arma un string `GDNC-` más seis caracteres y lo guarda en `usuarios.codigo_verificacion_gd`. El modal pasa del paso 1 al paso 2 (la etiqueta “Paso 1 de 2” cambia con él) y le pide que publique ese código en los comentarios de su perfil de GD. El botón “Copiar” lo deja en el portapapeles.
 
-“Verificar y Entrar” no habla con los servidores de RobTop desde el navegador. Invoca la Edge Function `gdbrowser-proxy` con `{ gdName }`. La función, en `supabase/functions/gdbrowser-proxy/index.ts`, hace dos cosas:
+“Verificar y entrar” no habla con los servidores de RobTop desde el navegador. `buscarComentariosGD()` de `authApi.js` invoca la Edge Function `gdbrowser-proxy` con `{ gdName }`. La función, en `supabase/functions/gdbrowser-proxy/index.ts`, hace dos cosas:
 
 1. `GET https://gdbrowser.com/api/profile/{nombre}?t={timestamp}` para sacar el `accountID`.
 2. `GET https://gdbrowser.com/api/comments/{accountID}?type=profile&t={timestamp}` y devuelve esos comentarios.
@@ -130,12 +127,12 @@ De vuelta en el navegador, `auth.js` busca si algún `comentario.content` incluy
 
 ### Si quieres cambiar el texto del modal de vinculación
 
-El copy está en `index.html`, dentro de `#gd-setup-modal`. Los ids que el JS necesita son `gd-input-name`, `btn-generar-codigo`, `paso-1-gd`, `paso-2-gd`, `codigo-display`, `btn-verificar-gd` y `gd-error-msg`. Puedes reescribir los párrafos; si renombras un id, `auth.js` deja de encontrar el nodo.
+El copy está en `index.html`, dentro de `#gd-setup-modal`. Los ids que el JS necesita son `gd-step-label`, `paso-1-gd` (un `<form>`: el código se genera en su `submit`), `gd-input-name`, `btn-generar-codigo`, `paso-2-gd`, `codigo-display`, `btn-copiar-codigo`, `btn-gd-back`, `btn-verificar-gd`, `gd-error-msg` y `btn-gd-dismiss` (“Salir sin enlazar”, que cierra la sesión). Puedes reescribir los párrafos; si renombras un id, `auth.js` deja de encontrar el nodo.
 
 El formato del código sale de esta línea en `auth.js`:
 
 ```js
-currentCodigo = "GDNC-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+currentCodigo = 'GDNC-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 ```
 
 `GDNC-` es solo una etiqueta legible. La comprobación es un `includes` sobre el texto del comentario, así que el código generado y el que se busca tienen que ser el mismo string.
@@ -146,7 +143,7 @@ Los puntos de un jugador no son la suma de todo lo que ha completado. Son la sum
 
 ```mermaid
 flowchart TD
-    A[Jugador verificado pulsa Subir Récord] --> B[Submit.js inserta en submits]
+    A[Jugador verificado pulsa Subir récord] --> B[submitApi.js inserta en submits]
     B --> C[estado pendiente y leido falso]
     C --> D{Moderador en mod-panel}
     D -->|Rechazar| E[estado rechazado, mod_nota con el motivo, leido falso]
@@ -161,46 +158,42 @@ flowchart TD
     L --> M[Al abrir el buzón, leido pasa a verdadero]
 ```
 
-Un moderador también puede saltarse la cola. En el perfil de alguien, si quien mira tiene `rol = 'mod'`, aparece “Añadir Récord Manual”. Ese insert ya nace con `estado: 'aceptado'`. Editar puntos o borrar un récord desde el mismo perfil vuelve a calcular la suma. Esa segunda copia del cálculo vive en `recalcularPerfil()` dentro de `js/profile.js`. La del panel está en `recalcularPuntosUsuario()` dentro de `js/modApi.js`. Hacen lo mismo: top 3 aceptados, suma, y update de `puntos_totales` más `top_3_hardests`. Si cambias la fórmula, cámbiala en los dos sitios.
+Un moderador también puede saltarse la cola. En el perfil de alguien, si quien mira tiene `rol = 'mod'`, aparece “Añadir récord”. Ese insert ya nace con `estado: 'aceptado'`. Editar puntos o borrar un récord desde el mismo perfil vuelve a calcular la suma. El cálculo vive en un solo sitio, `recalcularPuntosUsuario()` de `js/api/modApi.js`, y lo usan el panel y el perfil: top 3 aceptados, suma, y update de `puntos_totales` más `top_3_hardests`.
 
 ## Subir un récord
 
-`js/Submit.js` solo corre en el index. `initSubmitButton()` muestra `#btn-open-submit` cuando hay sesión y la fila de `usuarios` ya tiene `gd_username`. Sin eso el botón sigue en `display: none`, que es como viene en el HTML.
+`js/Submit.js` corre en las tres páginas. Al cargar añade al `<body>` el modal que genera `SubmitModal()`, y `initSubmitButton()` muestra `#btn-open-submit` cuando hay sesión y la fila de `usuarios` ya tiene `gd_username`. Sin eso el botón sigue con el atributo `hidden`, que es como viene en el HTML. Cuando lo muestra, también pone `data-can-submit="true"` en el `<body>` y lanza el evento `gdnc:can-submit`: los estados vacíos del ranking y del perfil lo escuchan para enseñar su propio botón “Subir récord”.
 
-El modal pide nombre del nivel, id y URL del video. El insert en `submits` manda `user_uid`, `gd_username`, `nivel_nombre`, `nivel_id`, `video_url` y `estado: 'pendiente'`. Los puntos no los elige el jugador.
+El modal pide nombre del nivel, id y URL del video. Antes de enviar, `validar()` marca con `aria-invalid` los campos vacíos o mal escritos (el id solo admite dígitos y la URL tiene que empezar con `http`; si el jugador pega `youtu.be/...` sin protocolo, se le añade `https://`). `enviarRecord()` de `js/api/submitApi.js` hace el insert en `submits` con `user_uid`, `gd_username`, `nivel_nombre`, `nivel_id`, `video_url` y `estado: 'pendiente'`. Los puntos no los elige el jugador.
+
+Si el envío sale bien, el formulario se cambia por una confirmación que se queda abierta hasta que el jugador elige “Subir otro” o “Listo”. Al cerrarla, el formulario se vacía para el siguiente récord.
 
 ### Si quieres cambiar los campos del formulario
 
-Están en `index.html`, modal `#submit-modal`: `submit-lvl-name`, `submit-lvl-id`, `submit-video-url`, `btn-send-submit` y `submit-msg`. `Submit.js` lee esos ids tal cual. Un campo nuevo hay que leerlo ahí y meterlo en el objeto del `insert`, y la columna tiene que existir en `submits`.
+El marcado está en `js/components/SubmitModal.js`: `submit-form`, `submit-lvl-name`, `submit-lvl-id`, `submit-video-url`, `submit-msg`, `btn-send-submit` y la vista `submit-success` con `btn-submit-another` y `btn-submit-done`. `Submit.js` lee esos ids tal cual. Un campo nuevo hay que añadirlo a `CAMPOS` en `Submit.js`, pasarlo a `enviarRecord()` y meterlo en el `insert` de `submitApi.js`; la columna tiene que existir en `submits`.
 
 ## El buzón
 
-Cuando el perfil está verificado, `auth.js` crea el botón `#btn-inbox` al lado del logo (envuelve el logo en `.nav-brand` si todavía no existe) y el modal `#inbox-modal`.
+Cuando el perfil está verificado, `NavAccount()` pinta la campana `#btn-inbox` a la izquierda del menú de cuenta y `auth.js` añade el modal `#inbox-modal` al `<body>`.
 
-La consulta trae los `submits` de ese `user_uid`, del más nuevo al más viejo. El puntito de no leído mira solo el primero de esa lista, y solo si `leido === false`:
+La consulta (`obtenerMisEnvios()` en `authApi.js`) trae los `submits` de ese `user_uid`, del más nuevo al más viejo. El punto de no leído mira solo el primero de esa lista, y solo si `leido === false`. Su color sale de la clase `inbox-dot--{estado}`: verde para `aceptado`, rojo para `rechazado` y blanco para `pendiente`. La etiqueta accesible de la campana también nombra el estado (“Tus envíos, novedad: Aceptado”), así que la información no depende solo del color.
 
-- `aceptado` → clase `inbox-dot--green`
-- `rechazado` → `inbox-dot--red`
-- cualquier otro estado, en la práctica `pendiente` → `inbox-dot--yellow`
+Al abrir el buzón se hace `update({ leido: true })` de todos los submits no leídos de ese usuario. Aceptar o rechazar en el panel pone `leido: false` a propósito, para que el punto vuelva a encenderse.
 
-Al abrir el buzón se hace `update({ leido: true })` de todos los submits no leídos de ese usuario. Aceptar o rechazar en el panel pone `leido: false` a propósito, para que el puntito vuelva a encenderse.
-
-Cada ítem muestra `estado`, `nivel_nombre`, `nivel_id` y, si viene, `mod_nota`.
+Cada ítem muestra el estado (con texto, no solo color), `nivel_nombre`, `nivel_id`, cuándo se envió y, si viene, `mod_nota`.
 
 ## Ranking
 
-`js/db.js` pide `usuarios` con `gd_verificado = true`, ordenados por `puntos_totales` descendente. Parte el array en dos:
+`js/db.js` pide el ranking con `obtenerRanking()` de `js/api/rankingApi.js`: `usuarios` con `gd_verificado = true`, ordenados por `puntos_totales` descendente. Mientras llega, `index.html` ya trae un esqueleto con la silueta del podio y de las primeras filas. Después parte el array en dos:
 
 - Los tres primeros van a `#podium-container`.
 - Del cuarto en adelante van a `#ranking-container`.
 
-El podio no se pinta en orden 1, 2, 3. Se reordena a **2, 1, 3** para que el primer lugar quede al centro cuando el CSS pone las tres tarjetas en fila. El número que se ve (`#1`, `#2`, `#3`) viaja aparte, en el argumento `rank` de `PlayerCard`. Si algún día el podio pasa a ser una columna, ese reorden ya no hace falta.
+El podio se pinta en orden 1, 2, 3, que es el orden en que lo recorren un lector de pantalla y el tabulador. Quien pone al primero en el centro es el CSS, con `grid-column` dentro de `.podium-container.is-active` en `css/components/cards.css`. El número que se ve (`1`, `2`, `3`) viaja en el argumento `rank` de `PlayerCard`.
 
-`PlayerCard` está en `js/components/PlayerCard.js`. Recibe el jugador y el puesto, y devuelve un string HTML: un `<a href="profile.html?uid=...">` con rango, avatar, nombre de GD, usuario de Discord, los hardests y los puntos. Las clases `player-card--rank-1`, `--rank-2` y `--rank-3` solo se aplican a los tres primeros. El color de cada puesto sale de `--color-rank-1`, `--color-rank-2` y `--color-rank-3` en `css/main.css`, y el layout del podio está en `css/components/cards.css` bajo `.podium-container.is-active`.
+`PlayerCard` está en `js/components/PlayerCard.js`. Recibe el jugador y el puesto, y devuelve un string HTML: un `<a href="profile.html?uid=...">` con puesto, avatar, nombre de GD, usuario de Discord, los tres récords que suman y los puntos. Todo el texto que viene de la base pasa por `escapeHtml()`. Las clases `player-card--rank-1`, `--rank-2` y `--rank-3` solo se aplican a los tres primeros. El color de cada puesto sale de `--color-rank-1`, `--color-rank-2` y `--color-rank-3` en `css/main.css`.
 
-Si `top_3_hardests` viene vacío, la tarjeta dice “Sin récords registrados”.
-
-Después de inyectar el HTML, `db.js` llama a `observarTarjetas()` de `ui.js`.
+Si `top_3_hardests` viene vacío, la tarjeta dice “Sin récords todavía”. Si no hay ningún jugador, o la consulta falla, `db.js` pinta un estado vacío o de error con su acción (“Subir récord” o “Reintentar”).
 
 ### Si quieres cambiar cómo se ve una tarjeta del ranking
 
@@ -210,27 +203,25 @@ El marcado está en `PlayerCard()`. Los nombres que el buscador y las animacione
 
 `#search-input` lo escucha `js/ui.js`, no `db.js`. No vuelve a consultar Supabase: filtra las `.player-card` que ya están en el DOM, comparando el texto de `.player-card__title` (el nombre de GD).
 
-Hay un debounce de 250 ms. Cada tecla cancela el `setTimeout` anterior, así que la animación no se dispara en cada letra. Con cualquier texto, `#podium-container` pierde `is-active` y gana `is-searching`, que lo oculta; al vaciar el input el podio regresa.
+Hay un debounce de 200 ms: cada tecla cancela el `setTimeout` anterior. Con cualquier texto, `#podium-container` pierde `is-active` (la clase de la que cuelga todo el estilo del podio) y gana `is-searching`, así que sus tres tarjetas pasan a verse como filas normales y un jugador del top 3 también sale en los resultados. Las tarjetas que no coinciden reciben `is-filtered-out`. Si no queda ninguna, `#search-empty` dice “Ningún jugador coincide con …”. Al vaciar el input el podio regresa.
 
-Las tarjetas que dejan de coincidir reciben `fade-out` y, 300 ms después, `display: none`. Las que vuelven a coincidir se muestran otra vez con `is-visible`, escalonadas de 50 ms en 50 ms. Para que la animación CSS se reinicie, el código lee `card.offsetWidth` (`void card.offsetWidth`). Eso obliga al navegador a aplicar el estilo actual antes de volver a añadir la clase. Sin ese reflow, quitar y poner `is-visible` en el mismo frame no se nota.
+### Animaciones
 
-### Animación al hacer scroll
-
-`observarTarjetas()` observa cada `.player-card` con un `IntersectionObserver`. Cuando entra un 10 % de la tarjeta (con 50 px de margen inferior), le añade `animate-on-scroll` / `is-visible` y deja de observarla. El keyframe `fadeInUp` está en `css/components/animations.css`. El retraso `index * 50` solo escalona las tarjetas que cruzan el umbral juntas.
+Viven en `css/components/animations.css` y son cortas a propósito: la entrada del podio (`podium-rise`), la apertura y el cierre de los modales (`modal-in` y `modal-out`, o `sheet-in` y `sheet-out` cuando en móvil el modal sube desde abajo), el menú de cuenta (`menu-in`), el brillo de los esqueletos y la salida de una tarjeta revisada en el panel (`card-out`). Con `prefers-reduced-motion: reduce`, `css/main.css` las deja prácticamente en cero.
 
 ## Perfiles
 
-`profile.html` lee el `uid` del query string. Sin `?uid=` el banner muestra “Usuario no especificado.” `cargarPerfilCompleto()` en `js/profile.js` hace tres comprobaciones:
+`profile.html` lee el `uid` del query string. Sin `?uid=`, o si el jugador no existe, la cabecera muestra un aviso con un enlace de vuelta al ranking. `cargarPerfilCompleto()` en `js/profile.js` hace tres comprobaciones:
 
-- Si el `uid` de la sesión es el de la URL, `isOwner` es verdadero y aparece “Cambiar Banner”.
-- Si la fila del visitante tiene `rol = 'mod'`, `isMod` es verdadero. Eso enseña “Añadir Récord Manual” y los botones Editar / Borrar de cada récord, aunque estés viendo el perfil de otra persona.
+- Si el `uid` de la sesión es el de la URL, `isOwner` es verdadero y aparece “Cambiar banner”.
+- Si la fila del visitante tiene `rol = 'mod'`, `isMod` es verdadero. Eso enseña “Añadir récord” y los botones Editar / Borrar de cada récord, aunque estés viendo el perfil de otra persona.
 - Después carga la fila del perfil y sus `submits` con `estado = 'aceptado'`, ordenados por puntos de mayor a menor.
 
-El banner lo arma `ProfileBanner()` y el fondo lo aplica `aplicarFondoBanner()`. El historial de récords, en cambio, se concatena dentro de `profile.js`: todavía no hay un `RecordCard.js`.
+La cabecera la arma `ProfileBanner()`: portada, avatar, nombre, Discord, la etiqueta de moderador y tres cifras (puesto, puntos y número de récords). El puesto sale de `obtenerPosicionEnRanking()` y llega un momento después; mientras, la cifra muestra un esqueleto. El fondo lo aplica `aplicarFondoBanner()`. Cada récord es un `RecordCard()` de `js/components/RecordCard.js`.
 
-YouTube se convierte en iframe. Si la URL trae `watch?v=` se cambia por `embed/`; si trae `youtu.be/` se cambia por `youtube.com/embed/`. Medal y Twitch no se embeben: sale un botón “Ver en Medal.tv” o “Ver en Twitch” con color fijo. Cualquier otra URL cae en “Ver enlace externo”.
+Los videos de YouTube se ven como miniatura con un botón de reproducir. El iframe (de `youtube-nocookie.com`) solo se carga al pulsarla, así un perfil con muchos récords no descarga un reproductor por tarjeta; ese cambio lo hace `ui.js`. `youtubeId()` entiende `watch?v=`, `youtu.be/`, `/shorts/`, `/live/` y `/embed/`. Medal y Twitch no se embeben: sale un botón “Ver en Medal.tv” o “Ver en Twitch”. Cualquier otra URL `http(s)` cae en “Abrir video”, y una URL que no sea `http(s)` no genera enlace.
 
-Después de la tercera tarjeta, si hay más de tres récords, se inserta un separador “Otras Récords”. Los tres primeros son los que más pesan en los puntos; el resto es historial.
+Después de la tercera tarjeta, si hay más de tres récords, se inserta un separador “Otros récords”. Los tres primeros son los que suman los puntos; el resto es historial.
 
 ### Si quieres cambiar o agregar banners
 
@@ -244,23 +235,25 @@ Todo el catálogo está en `BANNER_REWARDS`, al inicio de `js/components/Profile
 | `imagen` | Ruta pública, por ejemplo `/img/banners/banner_10.svg`. `null` si no hay archivo. |
 | `fallback` | Un `linear-gradient(...)` por si la imagen no carga o todavía no existe. |
 
-Los premios actuales son 0, 10, 25, 50, 100, 200, 400, 800 y, al final, el personalizado de 1200. El orden del array es el orden del modal.
+Los premios actuales son 0, 25, 50, 100, 200, 300, 400, 600 y, al final, el personalizado de 800. El orden del array es el orden del modal.
 
 Para un banner nuevo con archivo propio:
 
-1. Mete el SVG o la imagen en `img/banners/`. Los que ya existen siguen el nombre `banner_{puntos}.svg`.
+1. Mete el SVG o la imagen en `img/banners/`. Los nombres de los que ya existen (`banner_10.svg`, `banner_25.svg`…) vienen de umbrales anteriores y ya no coinciden con sus `pts`. Conviene dejarlos así: el `id` de cada entrada (`banner_10`, …) es lo que está guardado en `usuarios.banner_activo`, y cambiarlo deja sin banner a quien lo tenía puesto.
 2. Añade un objeto a `BANNER_REWARDS` con un `id` nuevo, los `pts`, la ruta en `imagen` y un `fallback`.
 3. No hace falta tocar `profile.js` ni `profileApi.js` para un banner de archivo. El modal se genera recorriendo el array, y al elegirlo se guarda ese `id` en `banner_activo`.
 
 `resolverBanner()` busca el `id` guardado. Si esa entrada ya no existe, si el jugador ya no llega a los `pts`, o si eligió `custom` pero no hay `banner_custom_url`, vuelve al primer elemento del array (el clásico). Por eso bajar de puntos no deja un banner bloqueado puesto: la próxima visita se ve el de 0 pts, aunque la columna siga diciendo otro id hasta que elijan uno válido.
 
-El fondo no es un `style="background-image: ..."` escrito a mano en el HTML. `aplicarFondoBanner()` pone dos variables CSS en el elemento, `--banner-image` y `--banner-fallback`. Quien las consume es `.profile-banner` en `css/profile.css`: encima de la imagen hay dos degradados oscuros para que el nombre se lea, y debajo el fallback. Las mismas variables se usan en cada opción del modal (`.banner-option`).
+El fondo no es un `style="background-image: ..."` escrito a mano en el HTML. `aplicarFondoBanner()` pone la variable CSS `--banner-fallback` en el elemento y, si el banner tiene imagen, añade detrás del contenido un `<img class="profile-banner__media">`. Va en un `<img>` y no como `background-image` porque así los GIF se animan. Encima, `.profile-banner::after` en `css/profile.css` pone un velo oscuro para que el nombre se lea. Cada opción del modal (`.banner-option`) usa la misma variable y su propia `<img>`.
 
-Si cambias nombres de esas variables, actualiza a la vez `variablesDeBanner()` en `ProfileBanner.js` y el `background-image` de `.profile-banner`.
+Si cambias el nombre de esa variable, actualiza a la vez `variablesDeBanner()` en `ProfileBanner.js` y las reglas de `.profile-banner` y `.banner-option` en `css/profile.css`.
+
+El selector marca como “En uso” el banner que se ve en la portada, es decir, el que devuelve `resolverBanner()`, no el id guardado. Si alguien guardó un banner que ya no tiene desbloqueado, el selector y la portada coinciden en el clásico.
 
 ### El banner personalizado
 
-La última entrada usa `id: 'custom'` (`CUSTOM_BANNER_ID`). No tiene imagen en el repo. Al desbloquearla (1200 puntos) el modal ofrece subir un PNG, JPG o WEBP.
+La última entrada usa `id: 'custom'` (`CUSTOM_BANNER_ID`). No tiene imagen en el repo. Al desbloquearla (800 puntos) el modal ofrece subir un PNG, JPG, WEBP o GIF.
 
 La subida está en `js/api/profileApi.js`:
 
@@ -271,33 +264,39 @@ La subida está en `js/api/profileApi.js`:
 
 `profile.js` pinta el banner nuevo antes de esperar la respuesta y, si el update falla, restaura el id anterior. El mensaje de error sale en `#banner-feedback`.
 
-### Si quieres mover el umbral de 1200 puntos
+### Si quieres mover el umbral de 800 puntos
 
-Cambia el `pts` del objeto cuyo `id` es `'custom'` dentro de `BANNER_REWARDS`. El selector usa ese número para el candado. El texto de error de la subida, en `onArchivoBanner()` de `profile.js`, menciona “1200 puntos” a mano: si mueves el umbral, actualiza también esa frase. El servidor sigue siendo quien debe impedir que alguien con menos puntos escriba `banner_custom_url`; el `pts` del array solo es la regla de la interfaz.
+Cambia el `pts` del objeto cuyo `id` es `'custom'` dentro de `BANNER_REWARDS`. De ahí sale `PUNTOS_BANNER_PERSONALIZADO`, que usan el candado del selector, el texto del modal y el mensaje de error de la subida, así que no hay ninguna frase que actualizar a mano. El servidor sigue siendo quien debe impedir que alguien con menos puntos escriba `banner_custom_url`; el `pts` del array solo es la regla de la interfaz.
 
 ## Comentarios y likes
 
 En cada récord aceptado, el botón “Comentarios” abre `#comments-modal`. `profile.js` guarda el `submit_id` en `currentSubmitId`.
 
-- Los likes son un `count` de `submit_likes` para ese `submit_id`. Si la sesión ya tiene fila, el corazón se pinta relleno. Pulsar otra vez borra esa fila; si no existe, la inserta. Es un toggle, no un contador que se incrementa en la fila del récord.
-- Los comentarios salen de `comentarios` con el embed `usuarios ( gd_username, avatar_url )`, del más viejo al más nuevo. Hace falta estar logueado para escribir. El insert lleva `submit_id`, `user_uid` y `texto`.
+- Los likes son un `count` de `submit_likes` para ese `submit_id` (`obtenerInteracciones()` en `profileApi.js`). Si la sesión ya tiene fila, el botón se pinta marcado, con `aria-pressed="true"` y el texto “Te gusta”. Pulsar otra vez borra esa fila; si no existe, la inserta (`alternarMeGusta()`). Es un toggle, no un contador que se incrementa en la fila del récord. El botón cambia al momento y vuelve atrás si la escritura falla.
+- Los comentarios salen de `comentarios` con el embed `usuarios ( gd_username, avatar_url )`, del más viejo al más nuevo, y cada uno lo pinta `CommentItem()`. Hace falta estar logueado para escribir; sin sesión, el formulario se cambia por un aviso. El insert lleva `submit_id`, `user_uid` y `texto`.
 
-El modal se cierra con la X. El clic en el fondo oscuro de cualquier `.modal-overlay` lo cierra `ui.js`, con la clase `is-closing` y 300 ms de espera, que es la duración de la animación de salida.
+### Modales y diálogos
+
+Todos los modales se abren y cierran con `abrirModal()` y `cerrarModal()` de `js/modal.js`. Guardan el elemento que tenía el foco, lo mantienen dentro del modal mientras está abierto (Tab y Shift+Tab dan la vuelta) y lo devuelven al cerrar. Se cierran con su botón y, si el overlay tiene `data-dismiss="backdrop"`, también con Escape y con un clic en el fondo. El de vinculación con GD no lo lleva a propósito: es un paso obligatorio. La salida dura 160 ms (`MODAL_MOTION_MS`), con la clase `is-closing`; al terminar, el overlay lanza el evento `modal:closed`.
+
+Las confirmaciones no usan `alert()`, `confirm()` ni `prompt()`. `js/components/Dialog.js` tiene `confirmDialog()`, `promptDialog()` y `alertDialog()`, que devuelven una promesa y se ven como el resto de la página. Borrar un récord pide confirmación con el botón destructivo en rojo y el foco inicial en “Cancelar”.
 
 ## Panel de moderación
 
-`mod-panel.html` carga `js/mod.js`, y ese archivo no habla con Supabase directo: pasa por `js/modApi.js`.
+`mod-panel.html` carga `js/mod.js`, y ese archivo no habla con Supabase directo: pasa por `js/api/modApi.js`.
 
-`verificarAccesoMod()` lee `usuarios.rol`. Si no es `'mod'` y no estás en localhost, hay un alert y un `location.replace('index.html')`.
+`verificarAccesoMod()` lee `usuarios.rol`. Si no es `'mod'` y no estás en localhost, el panel muestra un aviso de acceso restringido (distinto si no hay sesión o si la cuenta no es de moderador) con un enlace al ranking. No hay `alert()` ni redirección.
 
-`obtenerSubmitsPendientes()` trae `submits` con `estado = 'pendiente'`, del más antiguo al más nuevo (`fecha_submit` ascendente). Cada tarjeta deja ver el video en una pestaña nueva y ofrece dos acciones:
+`obtenerSubmitsPendientes()` trae `submits` con `estado = 'pendiente'`, del más antiguo al más nuevo (`fecha_submit` ascendente). Mientras llegan se ven dos esqueletos, y el número de pendientes aparece junto al título. Cada tarjeta es un `ReviewCard()` de `js/components/ReviewCard.js`: la miniatura del video (si es de YouTube se reproduce ahí mismo), un enlace para abrirlo en otra pestaña y dos acciones:
 
-- **Aceptar.** El input `pts-{submit_id}` es obligatorio y tiene que ser un entero mayor que 0. `aceptarSubmit()` pone `estado: 'aceptado'`, `puntos_asignados`, `mod_nota: null`, `leido: false`, y luego recalcula los puntos de ese `user_uid`.
-- **Rechazar.** Primero se ocultan los controles principales (fade de 300 ms, otra vez con `offsetWidth` para arrancar la transición) y aparece un `<select>` de motivos. `rechazarSubmit()` guarda el texto elegido en `mod_nota`, pasa el estado a `rechazado` y marca `leido: false`. No toca los puntos.
+- **Aceptar.** El input `pts-{submit_id}` es obligatorio y tiene que ser un entero mayor que 0; si no, el error sale debajo de la tarjeta. Enter en ese campo también acepta. `aceptarSubmit()` pone `estado: 'aceptado'`, `puntos_asignados`, `mod_nota: null`, `leido: false`, y luego recalcula los puntos de ese `user_uid`.
+- **Rechazar.** Los controles principales se ocultan y aparece un `<select>` de motivos con “Cancelar” y “Confirmar rechazo”. `rechazarSubmit()` guarda el texto elegido en `mod_nota`, pasa el estado a `rechazado` y marca `leido: false`. No toca los puntos.
+
+Al terminar, la tarjeta sale con `card-out` (240 ms, `SALIDA_MS` en `mod.js`) y el foco pasa al campo de puntos de la siguiente. Cuando no queda ninguna, el panel lo dice.
 
 ### Si quieres agregar un motivo de rechazo
 
-Los `<option>` están armados como HTML en `cargarPendientes()`, dentro de `js/mod.js`, en el `<select id="reason-${submit.submit_id}">`. El `value` es exactamente el texto que se guarda en `mod_nota` y el que el jugador lee en el buzón. Añadir una opción ahí es suficiente; no hay una lista aparte.
+Los motivos están en `MOTIVOS_RECHAZO`, al inicio de `js/components/ReviewCard.js`. `value` es exactamente el texto que se guarda en `mod_nota` y el que el jugador lee en el buzón; `label` es lo que ve el moderador en el `<select>`. Añadir un objeto ahí es suficiente; no hay una lista aparte.
 
 ## Qué espera el frontend de la base de datos
 
@@ -343,19 +342,19 @@ La Edge Function `gdbrowser-proxy` se despliega con la CLI de Supabase desde `su
 
 ## CSS, sin perderse
 
-`css/main.css` define las variables en `:root`: fondos (`--bg-base`, `--bg-surface`), Discord (`--color-discord`), acento (`--color-accent`), éxito, error, warning, texto, bordes, oro/plata/bronce del podio y los `z-index`. Casi ningún componente usa un hex suelto si ya existe una variable.
+`css/main.css` define las variables en `:root`: fondos (`--bg-base`, `--bg-surface`, `--bg-elevated`…), líneas (`--line-subtle`, `--line`, `--line-strong`), Discord (`--color-discord`), los colores del logo (`--color-brand-green`, `--color-brand-red`), el verde de los botones principales (`--color-action`), estados (`--color-positive`, `--color-danger`, `--color-pending`), texto (`--text-main`, `--text-muted`, `--text-placeholder`), oro/plata/bronce del podio, radios, sombras, tipografías, `z-index` y duraciones. Casi ningún componente usa un hex suelto si ya existe una variable. El mismo archivo trae las clases utilitarias (`d-flex`, `justify-between`, `text-center`, `text-muted`, `visually-hidden`…) y los ajustes para `prefers-reduced-motion`, `prefers-reduced-transparency` y `prefers-contrast: more`.
 
-`css/layout.css` es el navbar, el contenedor y el logo (Poppins). El fondo del navbar es semitransparente con `backdrop-filter: blur(10px)`.
+`css/layout.css` es el navbar, el contenedor, el logo (Poppins), el menú de cuenta y el pie de página. El navbar es de cristal, pero el `backdrop-filter` va en `.navbar::before` y no en `.navbar`: con el filtro en el padre, el panel del menú de cuenta (que es hijo suyo) ya no podría desenfocar la página que tiene detrás.
 
-`css/components.css` solo hace `@import` de botones, inputs, badges, modales, cards y animaciones. Un estilo nuevo de un botón va en `css/components/buttons.css`, no en un archivo suelto, y el HTML lo engancha con la clase que ya exista (`btn-primary`, `btn-outline`, `btn-primary--mod`, `btn-primary--success`…).
+`css/components.css` solo hace `@import` de botones, inputs, badges, modales, cards, animaciones y el crédito. Un estilo nuevo de un botón va en `css/components/buttons.css`, no en un archivo suelto, y el HTML lo engancha con la clase que ya exista (`btn-primary`, `btn-outline`, `btn-ghost`, `btn-danger`…).
 
-`css/profile.css` solo lo carga `profile.html`. Ahí viven el banner, el avatar grande, el modal de banners y la grilla de récords.
+`css/profile.css` solo lo carga `profile.html`. Ahí viven el banner, las cifras del perfil, el modal de banners y la grilla de récords.
 
-La convención del proyecto es no usar `style=""` salvo para un valor que de verdad se calcula en el momento (el fondo del banner, vía variables CSS). Varias pantallas todavía llevan estilos en línea en el HTML generado; si tocas ese bloque, lo más limpio es pasar el valor a una clase.
+La convención del proyecto es no usar `style=""` salvo para un valor que de verdad se calcula en el momento. Hoy solo hay dos: `--banner-fallback` en las opciones de banner y `--progress` en la barra de progreso hacia el siguiente.
 
 ### Si quieres cambiar un color de toda la página
 
-Edita la variable en `:root` dentro de `css/main.css`. `--color-discord` tiñe el botón de login, los nombres de Discord y varios títulos. `--color-rank-1` y compañía solo afectan al podio. `--color-mod` es el amarillo de moderador.
+Edita la variable en `:root` dentro de `css/main.css`. `--color-action` es el verde de “Subir récord”, “Enviar” y el resto de botones principales. `--color-discord` tiñe el botón de login y los iconos de Discord. `--color-rank-1` y compañía solo afectan al podio.
 
 ## Detalles que ahorran un rato de bugs
 

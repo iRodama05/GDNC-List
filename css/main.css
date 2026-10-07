@@ -1,49 +1,387 @@
-/* --- COLORES BASE Y SUPERFICIES --- */
-:root {--bg-base: #111115;--bg-surface: #1e1e24;--bg-surface-hover: #26262e;--bg-surface-alt: #1a1a20;--bg-input: #2a2a35;
+/* Los colores registrados interpolan al cambiar de tema. */
+@property --bg-base { syntax: "<color>"; inherits: true; initial-value: #111115; }
+@property --bg-surface { syntax: "<color>"; inherits: true; initial-value: #1c1c22; }
+@property --bg-surface-hover { syntax: "<color>"; inherits: true; initial-value: #23232a; }
+@property --bg-surface-alt { syntax: "<color>"; inherits: true; initial-value: #16161c; }
+@property --bg-elevated { syntax: "<color>"; inherits: true; initial-value: #222229; }
+@property --bg-input { syntax: "<color>"; inherits: true; initial-value: #16161c; }
+@property --bg-nav { syntax: "<color>"; inherits: true; initial-value: rgba(17, 17, 21, 0.72); }
+@property --text-main { syntax: "<color>"; inherits: true; initial-value: #f2f2f4; }
+@property --text-muted { syntax: "<color>"; inherits: true; initial-value: #a8a8b3; }
+@property --text-placeholder { syntax: "<color>"; inherits: true; initial-value: #8e8e9a; }
+@property --line { syntax: "<color>"; inherits: true; initial-value: rgba(255, 255, 255, 0.1); }
+@property --veil { syntax: "<color>"; inherits: true; initial-value: rgba(255, 255, 255, 0.06); }
 
-/* --- COLORES DE MARCA Y ACENTOS --- */
---color-discord: #5865F2;
---color-brand-green: #28a745;
---color-brand-green-alt: #20c997;
---color-brand-red: #dc3545;
---color-accent: #00d2ff;
+/* Superficies, texto y acentos. El naranja es el del logo y solo marca la acción principal. */
+:root {
+  color-scheme: dark;
 
-/* --- COLORES DE ESTADO Y ROLES --- */
---color-mod: #ffcc00;
---color-mod-alt: #e0a800;
---color-success: #43b581;
---color-error: #d9534f;
---color-warning: #ffd700;
+  --bg-base: #111115;
+  --bg-surface: #1c1c22;
+  --bg-surface-hover: #23232a;
+  --bg-surface-alt: #16161c;
+  --bg-elevated: #222229;
+  --bg-input: #16161c;
+  --bg-nav: rgba(17, 17, 21, 0.72);
+  --bg-scrim: rgba(8, 8, 11, 0.62);
+  --bg-scrim-solid: rgba(10, 10, 13, 0.94);
 
-/* --- TIPOGRAFÍA (Colores) --- */
---text-main: #ffffff;
---text-muted: #888888;
---text-placeholder: #555555;
+  /* Líneas: separan sin enmarcar. La versión fuerte delimita campos. */
+  --line-subtle: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --veil: rgba(255, 255, 255, 0.06);
+  --veil-strong: rgba(255, 255, 255, 0.1);
+  --focus-ring: rgba(255, 255, 255, 0.14);
+  --glow: rgba(255, 255, 255, 0.05);
+  --scrollbar: rgba(255, 255, 255, 0.18);
 
-/* --- BORDES --- */
---border-default: #333333;
---border-light: #444444;
+  --color-discord: #5865f2;
+  --color-brand: #f46b0a;
+  --color-brand-text: #f46b0a;
+  --color-brand-ink: #1a120c;
+  --color-action: var(--color-brand);
+  --color-positive: #34c759;
+  --color-danger: #ff6b6b;
+  --color-pending: #a8a8b3;
 
-/* --- RANGOS (Top 3) --- */
---color-rank-1: #ffd700;
---color-rank-2: #c0c0c0;
---color-rank-3: #cd7f32;
+  --text-main: #f2f2f4;
+  --text-muted: #a8a8b3;
+  --text-placeholder: #8e8e9a;
 
-/* --- CAPAS (Z-Index) --- */
---z-nav: 100;
---z-modal: 1000;
---z-modal-top: 2000;
---z-toast: 9999;
+  --color-rank-1: #ffd700;
+  --color-rank-2: #c0c0c0;
+  --color-rank-3: #cd7f32;
+  --rgb-rank-1: 255, 215, 0;
+  --rgb-rank-2: 192, 192, 192;
+  --rgb-rank-3: 205, 127, 50;
+
+  --radius-sm: 8px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-dialog: 18px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Poppins", var(--font-body);
+  --font-opus: "Copernicus", "Iowan Old Style", Palatino, Georgia, serif;
+
+  --container: 1080px;
+  --gutter: 24px;
+
+  --z-nav: 100;
+  --z-menu: 200;
+  --z-modal: 1000;
+  --z-modal-top: 2000;
+  --z-toast: 9999;
+
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html {
+  transition:
+    --bg-base 380ms var(--ease-out),
+    --bg-surface 380ms var(--ease-out),
+    --bg-surface-hover 380ms var(--ease-out),
+    --bg-surface-alt 380ms var(--ease-out),
+    --bg-elevated 380ms var(--ease-out),
+    --bg-input 380ms var(--ease-out),
+    --bg-nav 380ms var(--ease-out),
+    --text-main 380ms var(--ease-out),
+    --text-muted 380ms var(--ease-out),
+    --text-placeholder 380ms var(--ease-out),
+    --line 380ms var(--ease-out),
+    --veil 380ms var(--ease-out);
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #f3f1ee;
+  --bg-surface: #fffcf9;
+  --bg-surface-hover: #f6f3ee;
+  --bg-surface-alt: #e7e2db;
+  --bg-elevated: #ffffff;
+  --bg-input: #ffffff;
+  --bg-nav: rgba(243, 241, 238, 0.86);
+  --bg-scrim: rgba(26, 18, 12, 0.4);
+  --bg-scrim-solid: rgba(26, 18, 12, 0.72);
+
+  --line-subtle: rgba(26, 18, 12, 0.08);
+  --line: rgba(26, 18, 12, 0.12);
+  --line-strong: rgba(26, 18, 12, 0.2);
+  --veil: rgba(26, 18, 12, 0.05);
+  --veil-strong: rgba(26, 18, 12, 0.09);
+  --focus-ring: rgba(26, 18, 12, 0.12);
+  --glow: rgba(244, 107, 10, 0.09);
+  --scrollbar: rgba(26, 18, 12, 0.28);
+
+  --color-brand-text: #c2410c;
+  --color-positive: #1b7a34;
+  --color-danger: #c4322e;
+  --color-pending: #5e5852;
+
+  --text-main: #1a120c;
+  --text-muted: #5c534a;
+  --text-placeholder: #6a6158;
+
+  --shadow-card: 0 1px 2px rgba(26, 18, 12, 0.06);
+  --shadow-pop: 0 16px 40px rgba(26, 18, 12, 0.14);
+}
+
+/* Copernicus es de Klim; el navegador la usa si está instalada en el equipo. */
+@font-face {
+  font-family: "Copernicus";
+  src: local("Copernicus"), local("Copernicus Regular"), local("Galaxie Copernicus");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable;
 }
 
 body {
-  background-color: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 420px at 50% -160px, var(--glow), transparent 70%),
+    var(--bg-base);
+  background-repeat: no-repeat;
   color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.has-modal {
+  overflow: hidden;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+img,
+svg,
+iframe {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--veil-strong);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text-main);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+
+.icon {
+  flex: 0 0 auto;
+}
+
+/* --- Utilidades --- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* En pantallas estrechas se oculta a la vista pero sigue nombrando el control para lectores de pantalla. */
+@media (max-width: 768px) {
+  .hide-compact {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+/* --- Mensajes de estado --- */
+.status-message {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.status-message--error {
+  color: var(--color-danger);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-card);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty-state__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
+.empty-state__title {
+  color: var(--text-main);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.empty-state__text {
+  max-width: 42ch;
+}
+
+.empty-state .btn-primary {
+  margin-top: 4px;
+}
+
+.empty-state--compact {
+  padding: 32px 16px;
+  border: none;
+}
+
+/* --- Preferencias del sistema --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .navbar::before,
+  .account-menu__panel,
+  .modal-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .navbar::before {
+    background-color: var(--bg-surface-alt);
+  }
+
+  .account-menu__panel {
+    background-color: var(--bg-elevated);
+  }
+
+  .modal-overlay {
+    background: var(--bg-scrim-solid);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line-subtle: rgba(255, 255, 255, 0.2);
+    --line: rgba(255, 255, 255, 0.3);
+    --line-strong: rgba(255, 255, 255, 0.45);
+    --text-muted: #c6c6cf;
+    --text-placeholder: #b4b4be;
+    --color-brand: #ff8518;
+    --color-brand-text: #ff8518;
+    --color-action: var(--color-brand);
+  }
+
+  html[data-theme="light"] {
+    --line-subtle: rgba(26, 18, 12, 0.16);
+    --line: rgba(26, 18, 12, 0.26);
+    --line-strong: rgba(26, 18, 12, 0.4);
+    --text-muted: #3f3832;
+    --text-placeholder: #4e4640;
+    --color-brand-text: #9a3412;
+  }
 }

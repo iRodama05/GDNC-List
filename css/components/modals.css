@@ -1,250 +1,475 @@
-/* STREAMING_CHUNK: Contenedores de modales... /
-/ =========================================
-MODALES Y SUS ANIMACIONES
-========================================= */ 
-
 .modal-overlay {
-display: none; /* Controlado por JS */
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(17, 17, 21, 0.95);
-z-index: var(--z-modal);
-justify-content: center;
-align-items: center;
-animation: fadeInOverlay 0.3s ease-out forwards;
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  justify-content: center;
+  align-items: center;
+  padding: 24px 16px;
+  background: var(--bg-scrim);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: overlay-in var(--motion-base) ease;
 }
 
-.modal-content {
-background: var(--bg-surface);
-padding: 2rem;
-border-radius: 10px;
-text-align: center;
-width: 90%;
-max-width: 450px;
-border: 1px solid var(--color-discord);
-animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.modal-overlay.is-open {
+  display: flex;
 }
 
-.modal-content--warning {
-border-color: var(--color-mod-alt);
+.modal-overlay--top {
+  z-index: var(--z-modal-top);
 }
 
-/* STREAMING_CHUNK: Animaciones de modales... /
-/ KEYFRAMES PARA LAS ANIMACIONES DE ENTRADA */
-@keyframes fadeInOverlay {
-from { opacity: 0; }
-to { opacity: 1; }
+[role="dialog"]:focus,
+[role="alertdialog"]:focus {
+  outline: none;
 }
 
-@keyframes popInModal {
-from {
-opacity: 0;
-transform: translateY(30px) scale(0.9);
-}
-to {
-opacity: 1;
-transform: translateY(0) scale(1);
-}
-}
-
-/* ANIMACIONES DE SALIDA PARA MODALES */
-.modal-overlay.is-closing {
-animation: fadeOutOverlay 0.3s ease-in forwards;
-}
-
-.modal-overlay.is-closing .modal-content {
-animation: popOutModal 0.3s ease-in forwards;
-}
-
-/* STREAMING_CHUNK: Keyframes de salida... */
-@keyframes fadeOutOverlay {
-from { opacity: 1; }
-to { opacity: 0; }
-}
-
-@keyframes popOutModal {
-from {
-opacity: 1;
-transform: translateY(0) scale(1);
-}
-to {
-opacity: 0;
-transform: translateY(30px) scale(0.9);
-}
-}
-
-@keyframes popOutModal {
-from {
-opacity: 1;
-transform: translateY(0) scale(1);
-}
-to {
-opacity: 0;
-transform: translateY(30px) scale(0.9);
-}
-}
-
-/* STREAMING_CHUNK: Estilos del modal de banners... /
-/ =========================================
-MODAL DE BANNERS (PERFIL)
-========================================= */
+.modal-content,
 .banner-modal-content {
-background: var(--bg-surface);
-padding: 20px;
-border-radius: 12px;
-width: 90%;
-max-width: 500px;
-border: 1px solid var(--border-default);
-box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-animation: popInModal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  position: relative;
+  width: min(100%, 460px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-dialog);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-pop);
+  text-align: left;
+  animation: modal-in var(--motion-base) var(--ease-out);
+}
+
+.modal-content--scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: min(84dvh, 720px);
+  overflow: hidden;
 }
 
 .modal-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
-.modal-header h2 {
-margin: 0;
-color: var(--text-main);
-font-size: 1.2rem;
+.modal-header h2,
+.modal-title {
+  margin: 0;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-.btn-close-icon {
-background: transparent;
-border: none;
-color: var(--text-muted);
-font-size: 1.5rem;
-cursor: pointer;
-transition: color 0.2s;
+.modal-eyebrow {
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.btn-close-icon:hover {
-color: var(--text-main);
+.modal-lead {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.modal-lead--tight {
+  margin: 2px 0 0;
+}
+
+.dialog {
+  width: min(100%, 400px);
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.modal-actions > .btn-primary,
+.modal-actions > .btn-outline,
+.modal-actions > .btn-danger {
+  flex: 1 1 0;
+}
+
+.modal-overlay.is-closing {
+  animation: overlay-out var(--motion-fast) ease forwards;
+}
+
+.modal-overlay.is-closing .modal-content,
+.modal-overlay.is-closing .banner-modal-content {
+  animation: modal-out var(--motion-fast) ease forwards;
+}
+
+/* --- Envío completado --- */
+.submit-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+.submit-success__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: rgba(52, 199, 89, 0.14);
+  color: var(--color-positive);
+}
+
+.submit-success__text {
+  max-width: 36ch;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+/* --- Aviso de NCL Opus --- */
+.opus-disclaimer__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  margin: 0;
+}
+
+.opus-disclaimer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.opus-disclaimer__body p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+/* --- Diálogo de confirmación --- */
+.dialog-message {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+/* --- Selector de banners --- */
+.banner-modal-content {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 560px);
+  max-height: min(88dvh, 760px);
+  overflow: hidden;
+}
+
+.banner-progress {
+  margin: 4px 0 16px;
+}
+
+.banner-progress__text {
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.banner-progress__text strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.banner-progress__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.banner-progress__fill {
+  width: var(--progress, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--text-main);
 }
 
 .banner-scroll-list {
-display: flex;
-flex-direction: column;
-gap: 12px;
-max-height: 60vh;
-overflow-y: auto;
-padding-right: 5px;
-}
-
-/* STREAMING_CHUNK: Opciones de Banners... */
-.banner-modal__hint {
-margin: 4px 0 0;
-color: var(--text-muted);
-font-size: 0.8rem;
-max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  margin-right: -8px;
+  padding: 2px 8px 2px 2px;
 }
 
 .banner-file-input {
-display: none;
+  display: none;
 }
 
 .banner-feedback {
-margin: 12px 0 0;
-font-size: 0.85rem;
-color: var(--text-main);
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .banner-option {
-position: relative;
-overflow: hidden;
-flex: 0 0 auto;
-height: 125px;
-border-radius: 8px;
-cursor: pointer;
-border: 2px solid transparent;
-display: flex;
-align-items: center;
-justify-content: center;
-background-color: #1e1e24;
-background-image: var(--banner-fallback, #1e1e24);
-background-size: cover;
-background-position: center;
-transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+  flex: 0 0 auto;
+  height: 104px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-surface);
+  background-image: var(--banner-fallback, none);
+  background-size: cover;
+  background-position: center;
 }
 
 .banner-option__media {
-position: absolute;
-inset: 0;
-z-index: 0;
-width: 100%;
-height: 100%;
-object-fit: cover;
-pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
 }
 
 .banner-option::before {
-content: "";
-position: absolute;
-inset: 0;
-z-index: 1;
-pointer-events: none;
-background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.16));
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(8, 8, 12, 0.72), rgba(8, 8, 12, 0.1) 70%);
 }
 
-.banner-option--empty {
-border-style: dashed;
-border-color: rgba(255, 255, 255, 0.35);
+/* Botón que cubre la tarjeta: hace la opción seleccionable con teclado. */
+.banner-option__hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
 }
 
-.banner-upload-btn {
-position: absolute;
-z-index: 2;
-right: 10px;
-bottom: 8px;
-border: 1px solid rgba(255, 255, 255, 0.4);
-background: rgba(0, 0, 0, 0.5);
-color: #ffffff;
-border-radius: 999px;
-padding: 4px 10px;
-font-size: 0.75rem;
-cursor: pointer;
-backdrop-filter: blur(6px);
+.banner-option__hit:focus-visible {
+  outline-offset: -3px;
 }
 
-.banner-upload-btn:hover {
-background: rgba(0, 0, 0, 0.75);
+.banner-option__label {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
 }
 
-.banner-option:hover {
-transform: scale(1.02);
+.banner-option__name {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.banner-option__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.banner-option__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--bg-base);
+  pointer-events: none;
 }
 
 .banner-option.selected {
-border-color: #ffffff;
-box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
 }
 
-.banner-badge {
-position: relative;
-z-index: 2;
-background: rgba(0,0,0,0.6);
-color: white;
-padding: 5px 15px;
-border-radius: 20px;
-font-weight: bold;
-font-size: 0.9rem;
-text-transform: uppercase;
-letter-spacing: 1px;
+.banner-option.selected .banner-option__check {
+  display: grid;
 }
 
-/* STREAMING_CHUNK: Estilos para banners bloqueados... */
+.banner-option:not(.locked):hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.banner-option.locked .banner-option__media,
 .banner-option.locked {
-filter: grayscale(100%) opacity(0.5);
-cursor: not-allowed;
-border-color: transparent !important;
+  filter: grayscale(100%);
 }
 
-.banner-option.locked:hover {
-transform: none; /* Quitamos la animación de saltito */
+.banner-option.locked .banner-option__hit {
+  cursor: not-allowed;
+}
+
+.banner-option.locked::before {
+  background: rgba(8, 8, 12, 0.6);
+}
+
+.banner-option--empty {
+  border-style: dashed;
+  border-color: var(--line-strong);
+}
+
+.banner-upload-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-pill);
+  background: rgba(10, 10, 13, 0.78);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.banner-upload-btn:hover {
+  background: rgba(10, 10, 13, 0.92);
+}
+
+/* --- Comentarios --- */
+.like-row {
+  margin: 4px 0 16px;
+}
+
+.comments-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 96px;
+  overflow-y: auto;
+  margin: 0 -8px 12px 0;
+  padding-right: 8px;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.comment:last-child {
+  border-bottom: none;
+}
+
+.comment-avatar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.comment__body {
+  min-width: 0;
+}
+
+.comment__header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.comment__author {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.comment__time {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.comment__text {
+  margin: 0;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.comment-composer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-subtle);
+}
+
+.comment-composer .input-field {
+  margin: 0;
+}
+
+.comment-hint {
+  padding-top: 12px;
+  border-top: 1px solid var(--line-subtle);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content,
+  .banner-modal-content {
+    width: 100%;
+    max-height: 92dvh;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    border-bottom: none;
+    border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+    animation-name: sheet-in;
+  }
+
+  .modal-overlay.is-closing .modal-content,
+  .modal-overlay.is-closing .banner-modal-content {
+    animation-name: sheet-out;
+  }
+
+  .banner-option {
+    height: 88px;
+  }
 }

@@ -1,272 +1,208 @@
-import { supabase, getCurrentUser } from './config.js';
-import { avatarAnimado } from './avatar.js';
+import { getCurrentUser } from './config.js';
+import { abrirModal, cerrarModal } from './modal.js';
+import { copiarConAviso, marcarOcupado } from './utils.js';
+import { NavAccount, InboxModal, InboxItem, InboxEmpty, etiquetaBuzon } from './components/NavAccount.js';
+import {
+    iniciarSesionDiscord,
+    cerrarSesion as cerrarSesionSupabase,
+    alCambiarSesion,
+    obtenerPerfilUsuario,
+    sincronizarAvatar,
+    obtenerMisEnvios,
+    marcarEnviosLeidos,
+    guardarCodigoVerificacion,
+    buscarComentariosGD,
+    confirmarVerificacionGD
+} from './api/authApi.js';
 
 const btnLogin = document.getElementById('btn-login');
 const authSection = document.getElementById('auth-section');
 
-// Elementos del Modal de GD
+// Elementos del modal de GD (solo existen en index.html)
 const gdSetupModal = document.getElementById('gd-setup-modal');
+const gdStepLabel = document.getElementById('gd-step-label');
 const paso1Gd = document.getElementById('paso-1-gd');
 const paso2Gd = document.getElementById('paso-2-gd');
 const gdInputName = document.getElementById('gd-input-name');
 const codigoDisplay = document.getElementById('codigo-display');
 const gdErrorMsg = document.getElementById('gd-error-msg');
+const btnGenerarCodigo = document.getElementById('btn-generar-codigo');
+const btnVerificarGd = document.getElementById('btn-verificar-gd');
+const btnCopiarCodigo = document.getElementById('btn-copiar-codigo');
 
 let currentUserUid = null;
 let currentCodigo = null;
 let currentGdName = null;
 
-// --- FUNCIÓN DE LOGIN ---
 async function loginConDiscord() {
-    await supabase.auth.signInWithOAuth({
-        provider: 'discord',
-        options: {
-            redirectTo: window.location.origin 
-        }
-    });
+    await iniciarSesionDiscord();
 }
 
 async function cerrarSesion() {
-    await supabase.auth.signOut();
+    await cerrarSesionSupabase();
     window.location.reload();
 }
 
-// 1. Revisar estado y cargar perfil de la base de datos
+// ==========================================
+// 1. ESTADO DE LA SESIÓN Y NAVBAR
+// ==========================================
 async function checkUserStatus() {
     const user = await getCurrentUser();
 
-    if (user) {
-        currentUserUid = user.id;
-        
-        const { data: perfil } = await supabase
-            .from('usuarios')
-            .select('*')
-            .eq('uid', user.id)
-            .single();
-
-        if (perfil) {
-            // --- Sincronización de foto de perfil ---
-            const authAvatar = user.user_metadata?.avatar_url;
-            if (authAvatar && authAvatar !== perfil.avatar_url) {
-                // Actualizar la base de datos silenciosamente
-                await supabase.from('usuarios').update({ avatar_url: authAvatar }).eq('uid', user.id);
-                // Actualizar la variable local para que se muestre bien ahora mismo
-                perfil.avatar_url = authAvatar;
-            }
-            // ------------------------------------------------
-
-            if (!perfil.gd_username || !perfil.gd_verificado) {
-                gdSetupModal.style.display = 'flex';
-            } else {
-                const roleClass = perfil.rol === 'mod' ? 'nav-role nav-role--mod' : 'nav-role';
-                const roleText = perfil.rol === 'mod' ? 'MODERADOR' : 'JUGADOR';
-                const avatar = avatarAnimado(perfil.avatar_url);
-
-                let modButtonHTML = '';
-                if (perfil.rol === 'mod') {
-                    modButtonHTML = `<button id="btn-mod-panel" class="btn-primary btn-primary--mod" style="margin-left: 10px;">Panel Mod</button>`;
-                }
-
-                // Consultamos los submits del usuario ordenados por el más reciente
-                const { data: misEnvios } = await supabase.from('submits')
-                    .select('*')
-                    .eq('user_uid', user.id)
-                    .order('submit_id', { ascending: false });
-
-                let hasUnread = false;
-                let dotClass = '';
-                let inboxItemsHTML = '<p style="color: var(--text-muted); font-size:0.9rem;">No has subido ningún récord aún.</p>';
-
-                if (misEnvios && misEnvios.length > 0) {
-                    const ultimoEnvio = misEnvios[0];
-                    if (ultimoEnvio.leido === false) {
-                        hasUnread = true;
-                        if (ultimoEnvio.estado === 'aceptado') dotClass = 'inbox-dot--green';
-                        else if (ultimoEnvio.estado === 'rechazado') dotClass = 'inbox-dot--red';
-                        else dotClass = 'inbox-dot--yellow';
-                    }
-
-                    inboxItemsHTML = misEnvios.map(envio => {
-                        let colorText = 'var(--color-warning)';
-                        if (envio.estado === 'aceptado') colorText = 'var(--color-success)';
-                        if (envio.estado === 'rechazado') colorText = 'var(--color-error)';
-                        
-                        const notaMod = envio.mod_nota ? `<p class="inbox-item__note">" ${envio.mod_nota} "</p>` : '';
-                        
-                        return `
-                            <div class="inbox-item inbox-item--${envio.estado}">
-                                <div class="inbox-item__status" style="color: ${colorText}">${envio.estado}</div>
-                                <div class="inbox-item__title">${envio.nivel_nombre} (ID: ${envio.nivel_id})</div>
-                                ${notaMod}
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                let navBrand = document.querySelector('.nav-brand');
-                if (!navBrand) {
-                    const logo = document.querySelector('.logo');
-                    navBrand = document.createElement('div');
-                    navBrand.className = 'nav-brand';
-                    logo.parentNode.insertBefore(navBrand, logo);
-                    navBrand.appendChild(logo);
-                }
-
-                let btnInbox = document.getElementById('btn-inbox');
-                if (!btnInbox) {
-                    btnInbox = document.createElement('button');
-                    btnInbox.id = 'btn-inbox';
-                    btnInbox.className = 'btn-inbox';
-                    btnInbox.title = 'Buzón de Notificaciones';
-                    navBrand.appendChild(btnInbox);
-                }
-
-                btnInbox.innerHTML = `
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span id="inbox-dot" class="inbox-dot ${hasUnread ? 'is-unread ' + dotClass : ''}"></span>
-                `;
-
-                // --- Onerror del avatar ---
-                authSection.innerHTML = `
-                    <div class="nav-user-profile">
-                        <a href="profile.html?uid=${perfil.uid}">
-                            <img src="${avatar}" alt="Avatar" class="nav-avatar" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
-                            <div class="nav-user-info">
-                                <span class="nav-gd-name">${perfil.gd_username}</span>
-                                <span class="${roleClass}">${roleText}</span>
-                            </div>
-                        </a>
-                        
-                        <div class="points-badge" style="margin-left: 10px;">
-                            <span class="points-badge__number">${perfil.puntos_totales || 0}</span>
-                            <span class="points-badge__label">PTS</span>
-                        </div>
-                        ${modButtonHTML}
-                        <button id="btn-logout" class="btn-outline" style="margin-left: 10px;">Log Out</button>
-                    </div>
-                `;
-                
-                if (!document.getElementById('inbox-modal')) {
-                    const inboxModalHTML = `
-                        <div id="inbox-modal" class="modal-overlay">
-                            <div class="modal-content" style="max-height: 80vh; display: flex; flex-direction: column;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-default); padding-bottom: 10px; margin-bottom: 15px;">
-                                    <h2 style="margin: 0; font-size: 1.5rem;">Mis Envíos</h2>
-                                    <button id="btn-close-inbox" style="background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer;">&times;</button>
-                                </div>
-                                <div id="inbox-items-container" style="flex: 1; overflow-y: auto; padding-right: 5px;">
-                                    ${inboxItemsHTML}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', inboxModalHTML);
-                } else {
-                    document.getElementById('inbox-items-container').innerHTML = inboxItemsHTML;
-                }
-
-                document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
-                
-                if (perfil.rol === 'mod') {
-                    document.getElementById('btn-mod-panel').addEventListener('click', () => {
-                        window.location.href = 'mod-panel.html';
-                    });
-                }
-
-                const inboxModal = document.getElementById('inbox-modal');
-                document.getElementById('btn-inbox').addEventListener('click', async () => {
-                    inboxModal.style.display = 'flex';
-                    if (hasUnread) {
-                        document.getElementById('inbox-dot').classList.remove('is-unread');
-                        hasUnread = false;
-                        await supabase.from('submits').update({ leido: true }).eq('user_uid', user.id).eq('leido', false);
-                    }
-                });
-
-                document.getElementById('btn-close-inbox').addEventListener('click', () => {
-                    inboxModal.classList.add('is-closing');
-                    setTimeout(() => {
-                        inboxModal.style.display = 'none';
-                        inboxModal.classList.remove('is-closing');
-                    }, 300);
-                });
-            }
-        }
-    } else {
-        if (btnLogin) btnLogin.addEventListener('click', loginConDiscord);
+    if (!user) {
+        btnLogin?.addEventListener('click', loginConDiscord);
+        return;
     }
+
+    currentUserUid = user.id;
+
+    let perfil;
+    try {
+        perfil = await obtenerPerfilUsuario(user.id);
+    } catch (error) {
+        console.error('No se pudo cargar el perfil de la sesión:', error);
+        return;
+    }
+    if (!perfil) return;
+
+    // Discord puede cambiar la foto: se guarda la actual sin bloquear la carga si falla.
+    const authAvatar = user.user_metadata?.avatar_url;
+    if (authAvatar && authAvatar !== perfil.avatar_url) {
+        perfil.avatar_url = authAvatar;
+        sincronizarAvatar(user.id, authAvatar).catch((error) => console.warn('No se pudo sincronizar el avatar:', error));
+    }
+
+    if (!perfil.gd_username || !perfil.gd_verificado) {
+        abrirModal(gdSetupModal, { focus: gdInputName });
+        return;
+    }
+
+    let envios = [];
+    try {
+        envios = await obtenerMisEnvios(user.id);
+    } catch (error) {
+        console.error('No se pudieron cargar los envíos:', error);
+    }
+
+    renderCuenta(perfil, envios, user.id);
 }
 
-const btnGenerarCodigo = document.getElementById('btn-generar-codigo');
-if (btnGenerarCodigo) {
-    btnGenerarCodigo.addEventListener('click', async () => {
-        const gdName = gdInputName.value.trim();
-        if (!gdName) {
-            gdErrorMsg.textContent = "Por favor, ingresa tu nombre de GD.";
+/**
+ * Pinta la campana y el menú de cuenta, y prepara el modal de envíos.
+ * La campana muestra un punto con el estado del último envío mientras no se haya leído.
+ */
+function renderCuenta(perfil, envios, uid) {
+    const ultimoEnvio = envios[0];
+    let estadoNoLeido = ultimoEnvio && ultimoEnvio.leido === false ? ultimoEnvio.estado : null;
+
+    authSection.innerHTML = NavAccount(perfil, { estadoNoLeido });
+
+    let inboxModal = document.getElementById('inbox-modal');
+    if (!inboxModal) {
+        document.body.insertAdjacentHTML('beforeend', InboxModal());
+        inboxModal = document.getElementById('inbox-modal');
+        document.getElementById('btn-close-inbox').addEventListener('click', () => cerrarModal(inboxModal));
+    }
+
+    document.getElementById('inbox-items-container').innerHTML = envios.length
+        ? envios.map(InboxItem).join('')
+        : InboxEmpty();
+
+    document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
+
+    const btnInbox = document.getElementById('btn-inbox');
+    btnInbox.addEventListener('click', async () => {
+        abrirModal(inboxModal);
+        if (!estadoNoLeido) return;
+
+        estadoNoLeido = null;
+        document.getElementById('inbox-dot')?.classList.remove('is-unread');
+        btnInbox.setAttribute('aria-label', etiquetaBuzon(null));
+        try {
+            await marcarEnviosLeidos(uid);
+        } catch (error) {
+            console.warn('No se pudieron marcar los envíos como leídos:', error);
+        }
+    });
+}
+
+// ==========================================
+// 2. VERIFICACIÓN DE LA CUENTA DE GEOMETRY DASH
+// ==========================================
+function mostrarEstadoGd(texto = '', tipo = 'error') {
+    if (!gdErrorMsg) return;
+    gdErrorMsg.textContent = texto;
+    gdErrorMsg.className = `form-feedback form-feedback--${tipo}`;
+}
+
+function mostrarPasoGd(paso) {
+    paso1Gd.hidden = paso !== 1;
+    paso2Gd.hidden = paso !== 2;
+    if (gdStepLabel) gdStepLabel.textContent = `Paso ${paso} de 2`;
+    (paso === 1 ? gdInputName : btnVerificarGd)?.focus();
+}
+
+paso1Gd?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const gdName = gdInputName.value.trim();
+    if (!gdName) {
+        gdInputName.setAttribute('aria-invalid', 'true');
+        mostrarEstadoGd('Escribe tu nombre de Geometry Dash.');
+        gdInputName.focus();
+        return;
+    }
+
+    gdInputName.removeAttribute('aria-invalid');
+    const restaurar = marcarOcupado(btnGenerarCodigo, 'Generando…');
+    currentGdName = gdName;
+    currentCodigo = 'GDNC-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    try {
+        await guardarCodigoVerificacion(currentUserUid, currentCodigo);
+        codigoDisplay.textContent = currentCodigo;
+        mostrarEstadoGd('');
+        mostrarPasoGd(2);
+    } catch (error) {
+        console.error(error);
+        mostrarEstadoGd('No se pudo generar el código. Inténtalo de nuevo.');
+    } finally {
+        restaurar();
+    }
+});
+
+btnVerificarGd?.addEventListener('click', async () => {
+    mostrarEstadoGd('Buscando el código en tu perfil. Puede tardar unos segundos.', 'info');
+    const restaurar = marcarOcupado(btnVerificarGd, 'Verificando…');
+
+    try {
+        const comentarios = await buscarComentariosGD(currentGdName);
+        const codigoEncontrado = comentarios.some((comentario) => comentario.content?.includes(currentCodigo));
+
+        if (codigoEncontrado) {
+            await confirmarVerificacionGD(currentUserUid, currentGdName);
+            window.location.reload();
             return;
         }
+        mostrarEstadoGd('Todavía no vemos el código. Publícalo como comentario en tu perfil de GD, espera un minuto y vuelve a intentarlo.');
+    } catch (error) {
+        console.error(error);
+        mostrarEstadoGd('No encontramos ese jugador. Revisa que el nombre esté bien escrito.');
+    }
+    restaurar();
+});
 
-        currentGdName = gdName;
-        currentCodigo = "GDNC-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        
-        const { error } = await supabase
-            .from('usuarios')
-            .update({ codigo_verificacion_gd: currentCodigo })
-            .eq('uid', currentUserUid);
+btnCopiarCodigo?.addEventListener('click', () => copiarConAviso(btnCopiarCodigo, currentCodigo || ''));
 
-        if (!error) {
-            codigoDisplay.textContent = currentCodigo;
-            paso1Gd.style.display = 'none';
-            paso2Gd.style.display = 'block';
-            gdErrorMsg.textContent = "";
-        }
-    });
-}
+document.getElementById('btn-gd-back')?.addEventListener('click', () => {
+    mostrarEstadoGd('');
+    mostrarPasoGd(1);
+});
 
-const btnVerificarGd = document.getElementById('btn-verificar-gd');
-if (btnVerificarGd) {
-    btnVerificarGd.addEventListener('click', async () => {
-        gdErrorMsg.textContent = "Buscando comentario... (esto puede tardar)";
-        
-        try {
-            const { data: comentarios, error } = await supabase.functions.invoke('gdbrowser-proxy', {
-                body: { gdName: currentGdName }
-            });
-
-            if (error || !comentarios || comentarios.error) {
-                throw new Error("No se pudo encontrar el jugador.");
-            }
-            
-            const codigoEncontrado = comentarios.some(comentario => comentario.content.includes(currentCodigo));
-
-            if (codigoEncontrado) {
-                await supabase
-                    .from('usuarios')
-                    .update({ 
-                        gd_username: currentGdName, 
-                        gd_verificado: true,
-                        codigo_verificacion_gd: null
-                    })
-                    .eq('uid', currentUserUid);
-                
-                window.location.reload();
-            } else {
-                gdErrorMsg.textContent = "No se encontró el código. Asegúrate de publicarlo en tu perfil de GD y esperar un minuto.";
-            }
-
-        } catch (error) {
-            gdErrorMsg.textContent = "Hubo un error. Revisa que el nombre esté bien escrito.";
-            console.error(error);
-        }
-    });
-}
+document.getElementById('btn-gd-dismiss')?.addEventListener('click', cerrarSesion);
 
 checkUserStatus();
 
-supabase.auth.onAuthStateChange((event, session) => {
+alCambiarSesion((event) => {
     if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         checkUserStatus();
     }

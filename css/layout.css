@@ -1,156 +1,497 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,800;1,800&display=swap');
-
 /* =========================================
-   1. CONTENEDOR PRINCIPAL
+   1. CONTENEDOR Y ENCABEZADOS
    ========================================= */
 .container {
-  max-width: 1000px;
+  width: 100%;
+  max-width: calc(var(--container) + var(--gutter) * 2);
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 40px var(--gutter) 56px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  margin: 0;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.page-lead {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  margin: 40px 0 20px;
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.section-lead {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
 }
 
 /* =========================================
-   2. NAVBAR PRINCIPAL
+   2. NAVBAR
    ========================================= */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 40px;
-  background-color: rgba(30, 30, 36, 0.95);
-  border-bottom: 1px solid var(--border-default);
-  backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: var(--z-nav);
+  border-bottom: 1px solid var(--line-subtle);
 }
 
-/* --- ENVOLTORIO IZQUIERDO (LOGO + BUZÓN) --- */
-.nav-brand {
+/* El cristal va en una capa aparte: con backdrop-filter en .navbar, el menú de cuenta (hijo suyo)
+   no podría desenfocar la página que tiene detrás. */
+.navbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg-nav);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.navbar__inner {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  max-width: calc(var(--container) + var(--gutter) * 2);
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 10px var(--gutter);
 }
 
 /* --- LOGO --- */
 .logo {
-  font-family: 'Poppins', sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  font-style: italic;
-  text-decoration: none;
-  letter-spacing: 2px;
-  display: flex;
-  align-items: baseline;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.logo-g { color: var(--color-brand-green); }
-.logo-dn { color: var(--text-main); }
-.logo-c { color: var(--color-brand-red); }
-
-.logo-list {
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-left: 8px;
-  font-style: normal;
-  letter-spacing: 0;
-}
-
-/* --- SECCIÓN DE ACCIONES (DERECHA) --- */
-.nav-actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 25px;
-}
-
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
+  flex: 0 0 auto;
+  gap: 10px;
   color: var(--text-main);
-  font-size: 1.8rem;
-  cursor: pointer;
-  padding: 5px;
-}
-
-/* --- PERFIL EN NAVBAR --- */
-.nav-user-profile {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.nav-user-profile a {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: -0.03em;
   text-decoration: none;
-  color: inherit;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+}
+
+.logo-mark {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.logo-type {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.logo-name {
+  position: relative;
+  font-style: italic;
+}
+
+/* Franja de la bandera, bajo las letras. El filete hace visible el blanco en claro. */
+.logo-name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 3px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #006847 0 33.34%, #ffffff 33.34% 66.67%, #ce1126 66.67% 100%);
+  box-shadow: 0 0 0 1px rgba(26, 18, 12, 0.22);
+}
+
+.logo-opus {
+  color: var(--color-brand-text);
+  font-family: var(--font-opus);
+  font-size: 1rem;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0.01em;
+}
+
+.opus-alert {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, #e6a317 18%, transparent);
+  color: #e6a317;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background-color var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
-.nav-user-profile a:hover {
-  opacity: 0.8;
+html[data-theme="light"] .opus-alert {
+  background: color-mix(in srgb, #9a6700 14%, transparent);
+  color: #9a6700;
 }
 
-.nav-avatar {
+.opus-alert:hover {
+  background: color-mix(in srgb, currentColor 26%, transparent);
+}
+
+.opus-alert:active {
+  transform: scale(0.97);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* --- ACCIONES (DERECHA) --- */
+.nav-actions,
+.auth-section,
+.nav-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-actions {
+  gap: 12px;
+}
+
+.theme-switch {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin-left: -52px;
+  margin-right: 8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.theme-switch:hover {
+  background: var(--veil);
+}
+
+.theme-switch__track {
+  position: relative;
   width: 42px;
-  height: 42px;
-  border-radius: 8px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-alt);
+}
+
+.theme-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--motion-base) var(--ease-out);
+}
+
+html[data-theme="dark"] .theme-switch__thumb {
+  transform: translateX(16px);
+}
+
+.theme-switch__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity var(--motion-fast) ease;
+}
+
+html[data-theme="dark"] .theme-switch__icon--sun,
+html[data-theme="light"] .theme-switch__icon--moon {
+  opacity: 0;
+}
+
+/* --- MENÚ DE CUENTA --- */
+.account-menu {
+  position: relative;
+}
+
+.account-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
+}
+
+.account-trigger:hover,
+.account-trigger[aria-expanded="true"] {
+  background: var(--veil);
+  border-color: var(--line);
+}
+
+.account-trigger__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--bg-surface);
+}
+
+.account-trigger__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.account-trigger__name {
+  max-width: 14ch;
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-trigger__meta {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-trigger__chevron {
+  color: var(--text-muted);
+  transition: transform var(--motion-fast) ease;
+}
+
+.account-trigger[aria-expanded="true"] .account-trigger__chevron {
+  transform: rotate(180deg);
+}
+
+.account-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-menu);
+  width: 260px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background-color: rgba(34, 34, 41, 0.86);
+  box-shadow: var(--shadow-pop);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  animation: menu-in var(--motion-fast) var(--ease-out);
+}
+
+.account-menu__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding: 10px 10px 12px;
+  border-bottom: 1px solid var(--line-subtle);
+}
+
+.account-menu__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-control);
   object-fit: cover;
 }
 
-.nav-user-info {
+.account-menu__identity {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  min-width: 0;
+  line-height: 1.3;
 }
 
-.nav-gd-name {
-  font-weight: bold;
-  font-size: 1.1rem;
+.account-menu__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__meta {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.account-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--text-main);
-  line-height: 1.1;
+  font-size: 0.9375rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-menu__item .icon {
+  color: var(--text-muted);
+}
+
+.account-menu__item:hover {
+  background: var(--veil-strong);
+}
+
+.account-menu__item--danger,
+.account-menu__item--danger .icon {
+  color: var(--color-danger);
+}
+
+.account-menu__sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--line-subtle);
 }
 
 /* =========================================
-   3. MEDIA QUERIES (RESPONSIVE)
+   3. PIE DE PÁGINA
+   ========================================= */
+.site-footer {
+  border-top: 1px solid var(--line-subtle);
+}
+
+.site-footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: calc(var(--container) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 16px var(--gutter) 24px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.app-version {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================
+   4. RESPONSIVE
    ========================================= */
 @media (max-width: 768px) {
-  .navbar {
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 15px 20px;
+  :root {
+    --gutter: 16px;
   }
 
-  .menu-toggle {
-    display: block;
+  .container {
+    padding-top: 28px;
+  }
+
+  .page-header {
+    align-items: stretch;
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .navbar__inner {
+    min-height: 56px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .logo {
+    gap: 8px;
+    font-size: 1.5rem;
+  }
+
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+  }
+
+  .logo-opus {
+    font-size: 0.9375rem;
   }
 
   .nav-actions {
-    display: none;
-    width: 100%;
-    flex-direction: column;
-    background-color: var(--bg-surface-alt);
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 15px;
-    border: 1px solid var(--border-default);
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    gap: 6px;
   }
 
-  .nav-actions.active {
-    display: flex;
+  .account-trigger {
+    padding-right: 6px;
   }
 
-  .nav-user-profile {
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
+  .account-trigger__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .account-menu__panel {
+    position: fixed;
+    top: 64px;
+    right: var(--gutter);
+    left: auto;
+    width: min(300px, calc(100vw - var(--gutter) * 2));
   }
 }

@@ -1,9 +1,4 @@
-/* STREAMING_CHUNK: Importando los modulos CSS... /
-/ =========================================
-ÍNDICE DE COMPONENTES
-Aquí importamos todos los módulos para no saturar el HTML
-========================================= */
-
+/* Índice de componentes: el HTML carga solo este archivo. */
 @import url('./components/buttons.css');
 @import url('./components/inputs.css');
 @import url('./components/badges.css');

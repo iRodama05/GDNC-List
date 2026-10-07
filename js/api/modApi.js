@@ -1,4 +1,4 @@
-import { supabase, getCurrentUser } from './config.js';
+import { supabase, getCurrentUser } from '../config.js';
 
 // Devuelve { user, esMod }. user es null si no hay sesión.
 export async function verificarAccesoMod() {

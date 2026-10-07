@@ -1,40 +1,155 @@
-/* STREAMING_CHUNK: Barra de busqueda... /
-/ =========================================
-INPUTS Y BÚSQUEDA
-========================================= */ 
+.search-container {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 340px;
+}
+
+.search-container__icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.search-bar,
+.input-field,
+.select-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+  color: var(--text-main);
+  transition: border-color var(--motion-fast) ease, background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
 
 .search-bar {
-background-color: var(--bg-surface-alt);
-border: 1px solid var(--border-default);
-color: var(--text-main);
-padding: 10px 20px;
-border-radius: 25px;
-width: 280px;
-font-size: 0.95rem;
-outline: none;
-transition: all 0.3s ease;
-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding-left: 42px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface);
+  border-color: var(--line);
 }
 
-/* STREAMING_CHUNK: Interacciones de inputs... */
-.search-bar:focus {
-border-color: var(--color-brand-green);
-box-shadow: 0 0 10px rgba(40, 167, 69, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
-width: 300px;
+.search-bar:hover,
+.input-field:hover,
+.select-field:hover {
+  border-color: var(--line-strong);
 }
 
-.search-bar::placeholder {
-color: var(--text-placeholder);
-font-style: italic;
+.search-bar:focus-visible,
+.input-field:focus-visible,
+.select-field:focus-visible {
+  outline: none;
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-.input-field {
-width: 100%;
-padding: 0.8rem;
-margin-bottom: 1rem;
-border-radius: 5px;
-border: none;
-background: var(--bg-input);
-color: var(--text-main);
-box-sizing: border-box;
+.search-bar::-webkit-search-cancel-button {
+  cursor: pointer;
+  filter: invert(0.75);
+}
+
+html[data-theme="light"] .search-bar::-webkit-search-cancel-button {
+  filter: none;
+}
+
+.search-bar::placeholder,
+.input-field::placeholder {
+  color: var(--text-placeholder);
+  font-style: normal;
+}
+
+.input-field[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.select-field {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a8b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.select-field option {
+  background: var(--bg-elevated);
+  color: var(--text-main);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.field__label {
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field__hint {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.field__error {
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}
+
+.form-feedback {
+  margin-top: 12px;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.form-feedback:empty {
+  display: none;
+}
+
+.form-feedback--error {
+  color: var(--color-danger);
+}
+
+.form-feedback--ok {
+  color: var(--color-positive);
+}
+
+.form-feedback--info {
+  color: var(--text-muted);
+}
+
+/* Código de verificación de GD: se lee y se copia de un vistazo. */
+.code-ticket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 8px;
+  padding: 10px 10px 10px 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-input);
+}
+
+.codigo-display {
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    flex-basis: 100%;
+    max-width: none;
+  }
 }

@@ -1,4 +1,6 @@
-import { avatarAnimado } from '../avatar.js';
+import { avatarAnimado, DEFAULT_AVATAR } from '../avatar.js';
+import { escapeHtml, formatearPuntos } from '../format.js';
+import { icon, discordIcon } from './icons.js';
 
 export const CUSTOM_BANNER_ID = 'custom';
 
@@ -16,9 +18,7 @@ export const BANNER_REWARDS = [
     { pts: 800, id: CUSTOM_BANNER_ID, nombre: 'Personalizado', imagen: null, fallback: 'linear-gradient(135deg, #2b2b36, #1e1e24)' }
 ];
 
-const escapeHtml = (text = '') => String(text).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-}[char]));
+export const PUNTOS_BANNER_PERSONALIZADO = BANNER_REWARDS.find((banner) => banner.id === CUSTOM_BANNER_ID).pts;
 
 function variablesDeBanner(banner) {
     return {
@@ -65,47 +65,78 @@ export function aplicarFondoBanner(element, banner) {
     sincronizarMediaBanner(element, banner.imagen);
 }
 
-export function ProfileBanner(perfil, { isOwner, isMod }) {
-    const esModerador = perfil.rol === 'mod';
-    const roleClass = esModerador ? 'nav-role nav-role--mod' : 'nav-role';
+const CARGANDO_STAT = '<span class="skeleton-line skeleton-line--stat" aria-hidden="true"></span><span class="visually-hidden">Cargando</span>';
 
-    const modButton = isMod
-        ? '<button id="btn-mod-add-record" class="btn-primary btn-primary--mod profile-banner__mod-btn" type="button">+ Añadir Récord Manual</button>'
+/**
+ * Contenido de #profile-banner (.profile-header): portada con avatar y nombre, y franja de estadísticas.
+ * profile.js rellena #stat-rank y #stat-records cuando llegan sus consultas.
+ * Un jugador sin verificar no aparece en el ranking, así que su puesto se muestra como "—".
+ */
+export function ProfileBanner(perfil, { isOwner = false } = {}) {
+    const nombre = escapeHtml(perfil.gd_username || 'Jugador');
+
+    const discord = perfil.discord_username
+        ? `<span class="profile-banner__discord">${discordIcon(16)}<span>${escapeHtml(perfil.discord_username)}</span></span>`
         : '';
 
-    const editButton = isOwner ? `
-        <button id="btn-edit-banner" class="btn-edit-banner" type="button" title="Cambiar Banner">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            <span>Cambiar Banner</span>
-        </button>
-    ` : '';
+    const roleBadge = perfil.rol === 'mod'
+        ? `<span class="role-badge role-badge--media">${icon('shield', 14)}Moderador</span>`
+        : '';
+
+    const editButton = isOwner
+        ? `<button id="btn-edit-banner" class="btn-edit-banner" type="button" aria-haspopup="dialog">${icon('image', 16)}Cambiar banner</button>`
+        : '';
 
     return `
-        <img src="${escapeHtml(avatarAnimado(perfil.avatar_url))}" alt="Avatar de ${escapeHtml(perfil.gd_username)}" class="profile-avatar-giant" onerror="this.onerror=null;this.src='${escapeHtml(avatarAnimado())}';">
-
-        <div class="profile-banner__identity">
-            <h1 class="profile-banner__name">${escapeHtml(perfil.gd_username)}</h1>
-            <div class="profile-banner__discord">
-                <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor" aria-hidden="true">
-                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.15ZM42.68,65.27C36.67,65.27,31.7,59.65,31.7,52.7c0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C53.66,59.65,48.8,65.27,42.68,65.27Zm41.85,0c-6.01,0-10.98-5.62-10.98-12.58,0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C95.51,59.65,90.65,65.27,84.53,65.27Z"/>
-                </svg>
-                <span>${escapeHtml(perfil.discord_username)}</span>
+        <div class="profile-banner">
+            <div class="profile-banner__content">
+                <img src="${escapeHtml(avatarAnimado(perfil.avatar_url))}" alt="" class="profile-avatar-giant" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+                <div class="profile-banner__identity">
+                    <h1 class="profile-banner__name">${nombre}</h1>
+                    ${discord}
+                    ${roleBadge}
+                </div>
             </div>
-            ${modButton}
+            ${editButton}
         </div>
 
-        <div class="profile-stats-container">
-            <div class="stat-box">
-                <span class="stat-label">Puntos Actuales</span>
-                <span class="stat-value stat-value--red">${perfil.puntos_totales || 0}</span>
+        <dl class="profile-stats">
+            <div class="profile-stat">
+                <dt class="profile-stat__label">Puesto</dt>
+                <dd class="profile-stat__value" id="stat-rank">${perfil.gd_verificado ? CARGANDO_STAT : '—'}</dd>
             </div>
-            <div class="stat-box">
-                <span class="stat-label">Estado</span>
-                <span class="${roleClass} stat-role">${escapeHtml((perfil.rol || 'user').toUpperCase())}</span>
+            <div class="profile-stat">
+                <dt class="profile-stat__label">Puntos</dt>
+                <dd class="profile-stat__value">${formatearPuntos(perfil.puntos_totales)}</dd>
             </div>
-        </div>
+            <div class="profile-stat">
+                <dt class="profile-stat__label">Récords</dt>
+                <dd class="profile-stat__value" id="stat-records">${CARGANDO_STAT}</dd>
+            </div>
+        </dl>
+    `;
+}
 
-        ${editButton}
+// Texto y barra hacia el siguiente banner por desbloquear.
+export function BannerProgress(puntos) {
+    const siguiente = BANNER_REWARDS.find((banner) => banner.pts > puntos);
+    const tienes = `<strong>${formatearPuntos(puntos)} pts</strong>`;
+
+    if (!siguiente) {
+        return `
+            <p class="banner-progress__text">Tienes ${tienes}: ya desbloqueaste todos los banners.</p>
+            <div class="banner-progress__track" aria-hidden="true"><div class="banner-progress__fill" style="--progress: 100%"></div></div>
+        `;
+    }
+
+    const anterior = BANNER_REWARDS.filter((banner) => banner.pts <= puntos).at(-1) || BANNER_REWARDS[0];
+    const progreso = Math.round(((puntos - anterior.pts) / (siguiente.pts - anterior.pts)) * 100);
+
+    return `
+        <p class="banner-progress__text">Tienes ${tienes}. Te faltan <strong>${formatearPuntos(siguiente.pts - puntos)}</strong> para <strong>${escapeHtml(siguiente.nombre)}</strong>.</p>
+        <div class="banner-progress__track" role="progressbar" aria-label="Progreso hacia ${escapeHtml(siguiente.nombre)}" aria-valuemin="${anterior.pts}" aria-valuemax="${siguiente.pts}" aria-valuenow="${puntos}">
+            <div class="banner-progress__fill" style="--progress: ${progreso}%"></div>
+        </div>
     `;
 }
 
@@ -113,17 +144,27 @@ export function BannerOption(banner, { unlocked, selected, customUrl }) {
     const esCustom = banner.id === CUSTOM_BANNER_ID;
     const sinImagen = esCustom && !customUrl;
     const preview = esCustom && customUrl ? { ...banner, imagen: customUrl } : banner;
+    const nombre = escapeHtml(banner.nombre);
 
-    let badgeText = banner.nombre;
-    if (!unlocked) badgeText = `🔒 ${banner.nombre} · ${banner.pts} PTS`;
-    else if (sinImagen) badgeText = 'Sube tu imagen o GIF';
+    let estado = '';
+    let etiqueta = nombre;
+    if (!unlocked) {
+        estado = `${icon('lock', 14)}Se desbloquea con ${formatearPuntos(banner.pts)} pts`;
+        etiqueta = `${nombre}, se desbloquea con ${formatearPuntos(banner.pts)} pts`;
+    } else if (selected) {
+        estado = 'En uso';
+        etiqueta = `${nombre}, en uso`;
+    } else if (sinImagen) {
+        estado = 'Sube una imagen o GIF';
+        etiqueta = `${nombre}: subir una imagen o GIF`;
+    }
 
     const uploadButton = esCustom && unlocked
-        ? `<button type="button" class="banner-upload-btn" data-action="upload">${customUrl ? 'Cambiar imagen' : 'Subir imagen'}</button>`
+        ? `<button type="button" class="banner-upload-btn" data-action="upload">${icon('upload', 14)}${customUrl ? 'Cambiar imagen' : 'Subir imagen'}</button>`
         : '';
 
     const media = preview.imagen
-        ? `<img class="banner-option__media" src="${escapeHtml(preview.imagen)}" alt="">`
+        ? `<img class="banner-option__media" src="${escapeHtml(preview.imagen)}" alt="" loading="lazy">`
         : '';
 
     const classes = [
@@ -136,7 +177,12 @@ export function BannerOption(banner, { unlocked, selected, customUrl }) {
     return `
         <div class="${classes}" data-id="${banner.id}" data-unlocked="${unlocked}" style="${estiloInline(variablesDeBanner(preview))}">
             ${media}
-            <span class="banner-badge">${badgeText}</span>
+            <button type="button" class="banner-option__hit" aria-pressed="${Boolean(selected)}" ${unlocked ? '' : 'aria-disabled="true"'} aria-label="${etiqueta}"></button>
+            <span class="banner-option__label" aria-hidden="true">
+                <span class="banner-option__name">${nombre}</span>
+                ${estado ? `<span class="banner-option__status">${estado}</span>` : ''}
+            </span>
+            <span class="banner-option__check" aria-hidden="true">${icon('check', 16)}</span>
             ${uploadButton}
         </div>
     `;

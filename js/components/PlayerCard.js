@@ -1,51 +1,49 @@
-import { avatarAnimado } from '../avatar.js';
+import { avatarAnimado, DEFAULT_AVATAR } from '../avatar.js';
+import { escapeHtml, formatearPuntos } from '../format.js';
+import { discordIcon } from './icons.js';
 
-export function PlayerCard(player, rank) {
-    let rankClass = "";
-    if (rank === 1) rankClass = "player-card--rank-1";
-    if (rank === 2) rankClass = "player-card--rank-2";
-    if (rank === 3) rankClass = "player-card--rank-3";
+/**
+ * Fila del ranking. El podio usa el mismo marcado: cards.css lo convierte en tarjeta
+ * cuando #podium-container tiene .is-active, y vuelve a ser fila mientras se busca.
+ * ui.js filtra por .player-card y .player-card__title, así que esas dos clases no cambian.
+ */
+export function PlayerCard(player, rank, { eager = false } = {}) {
+    const medalla = rank <= 3 ? ` player-card--rank-${rank}` : '';
+    const nombre = escapeHtml(player.gd_username);
+    const hardests = Array.isArray(player.top_3_hardests) ? player.top_3_hardests : [];
 
-    const avatar = avatarAnimado(player.avatar_url);
+    const hardestsHTML = hardests.length > 0
+        ? hardests.map((nivel) => `
+            <li class="hardest-item">
+                <span class="hardest-item__name">${escapeHtml(nivel.nombre)}</span>
+                <span class="hardest-item__pts">${formatearPuntos(nivel.puntos)} pts</span>
+            </li>
+        `).join('')
+        : '<li class="hardest-item hardest-item--empty">Sin récords todavía</li>';
 
-    let hardestsHTML = '';
-    if (player.top_3_hardests && player.top_3_hardests.length > 0) {
-        hardestsHTML = player.top_3_hardests.map(nivel => `
-            <div class="hardest-item">
-                <span class="hardest-item__name">${nivel.nombre}</span>
-                <span class="hardest-item__pts">${nivel.puntos}pt</span>
-            </div>
-        `).join('');
-    } else {
-        hardestsHTML = '<span class="hardest-item__empty">Sin récords registrados</span>';
-    }
+    const discord = player.discord_username
+        ? `<p class="player-card__discord">${discordIcon(13)}<span class="player-card__discord-text">${escapeHtml(player.discord_username)}</span></p>`
+        : '';
 
-    // --- Onerror del avatar ---
     return `
-        <a href="profile.html?uid=${player.uid}" class="player-card ${rankClass}">
-            <div class="player-card__rank-number">#${rank}</div>
-            
-            <img src="${avatar}" alt="Avatar de ${player.gd_username}" class="player-card__avatar" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';">
-            
+        <a href="profile.html?uid=${encodeURIComponent(player.uid)}" class="player-card${medalla}">
+            <span class="player-card__rank"><span class="visually-hidden">Puesto </span><span class="player-card__rank-hash" aria-hidden="true">#</span>${rank}</span>
+
+            <img src="${escapeHtml(avatarAnimado(player.avatar_url))}" alt="" class="player-card__avatar" ${eager ? '' : 'loading="lazy"'} decoding="async" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';">
+
             <div class="player-card__info">
-                <h3 class="player-card__title">${player.gd_username}</h3>
-                
-                <div class="player-card__discord">
-                    <svg width="14" height="14" viewBox="0 0 127.14 96.36" fill="currentColor">
-                        <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.19-16.14c2.64-27.38-4.51-51.11-19.32-72.15ZM42.68,65.27C36.67,65.27,31.7,59.65,31.7,52.7c0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C53.66,59.65,48.8,65.27,42.68,65.27Zm41.85,0c-6.01,0-10.98-5.62-10.98-12.58,0-6.86,4.78-12.58,10.98-12.58,6.26,0,11.11,5.81,10.98,12.58C95.51,59.65,90.65,65.27,84.53,65.27Z"/>
-                    </svg>
-                    <span class="player-card__discord-text">${player.discord_username}</span>
-                </div>
+                <h3 class="player-card__title">${nombre}</h3>
+                ${discord}
             </div>
 
-            <div class="player-card__hardests">
+            <ul class="player-card__hardests" aria-label="Récords que suman">
                 ${hardestsHTML}
-            </div>
+            </ul>
 
-            <div class="player-card__points">
-                <span class="player-card__points-value">${player.puntos_totales || 0}</span>
-                <span class="player-card__points-label">PTS</span>
-            </div>
+            <p class="player-card__points">
+                <span class="player-card__points-value">${formatearPuntos(player.puntos_totales)}</span>
+                <span class="player-card__points-label">pts</span>
+            </p>
         </a>
     `;
 }

@@ -1,42 +1,145 @@
-/* STREAMING_CHUNK: Animaciones en cascada y transiciones de busqueda... /
-/ =========================================
-ANIMACIONES UI / UX GENERALES
-========================================= */ 
-
-/* Estado inicial de los elementos que vamos a animar (Intersection Observer) */
-.animate-on-scroll {
-opacity: 0;
-transform: translateY(30px);
+/* --- Esqueletos: la misma silueta que el contenido que va a llegar --- */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* La clase que JS agregará cuando el elemento sea visible */
-.is-visible {
-animation: fadeInUp 0.5s ease-out forwards;
+.skeleton-card,
+.skeleton-block,
+.skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-surface-hover) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-@keyframes fadeInUp {
-0% {
-opacity: 0;
-transform: translateY(30px);
-}
-100% {
-opacity: 1;
-transform: translateY(0);
-}
+.skeleton-card {
+  height: 84px;
+  border-radius: var(--radius-card);
 }
 
-/* Animación de salida para el buscador */
-.fade-out {
-animation: fadeOutDown 0.3s ease-in forwards;
+.skeleton-card--record {
+  height: 300px;
 }
 
-@keyframes fadeOutDown {
-0% {
-opacity: 1;
-transform: translateY(0);
+.skeleton-card--review {
+  height: 200px;
 }
-100% {
-opacity: 0;
-transform: translateY(15px);
+
+.skeleton-line.skeleton-line--stat {
+  display: inline-block;
+  width: 3.5rem;
+  height: 1.25rem;
 }
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 84px;
+  padding: 0 20px;
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+
+.skeleton-block {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+}
+
+.skeleton-lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  width: 40%;
+  height: 12px;
+  border-radius: var(--radius-pill);
+}
+
+.skeleton-line--short {
+  width: 22%;
+}
+
+.skeleton-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.skeleton-podium .skeleton-card {
+  height: 300px;
+}
+
+.skeleton-podium .skeleton-card:nth-child(2) {
+  height: 340px;
+}
+
+@media (max-width: 768px) {
+  .skeleton-podium {
+    display: none;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* El podio es el gesto grande. Las filas repiten la misma subida, más corta, al entrar en pantalla. */
+@keyframes podium-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes card-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-8px) scale(0.99); }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes modal-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(4px) scale(0.98); }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@keyframes sheet-out {
+  from { transform: none; }
+  to { transform: translateY(100%); }
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
 }
