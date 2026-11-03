@@ -13,6 +13,7 @@ export const BANNER_REWARDS = [
     { pts: 300, id: 'banner_200', nombre: 'Experto', imagen: '/img/banners/banner_200.svg', fallback: 'linear-gradient(90deg, #2a1604, #ffe08a)' },
     { pts: 400, id: 'banner_400', nombre: 'Maestro', imagen: '/img/banners/banner_400.svg', fallback: 'linear-gradient(90deg, #14082a, #7f5cff)' },
     { pts: 600, id: 'banner_800', nombre: 'Leyenda', imagen: '/img/banners/banner_800.svg', fallback: 'linear-gradient(90deg, #1a0610, #f5c16c)' },
+    // El mismo umbral está en Storage: "Banners: subir con 800 pts" y "Banners: reemplazar con 800 pts".
     { pts: 800, id: CUSTOM_BANNER_ID, nombre: 'Personalizado', imagen: null, fallback: 'linear-gradient(135deg, #2b2b36, #1e1e24)' }
 ];
 

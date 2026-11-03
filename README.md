@@ -244,7 +244,7 @@ Todo el catálogo está en `BANNER_REWARDS`, al inicio de `js/components/Profile
 | `imagen` | Ruta pública, por ejemplo `/img/banners/banner_10.svg`. `null` si no hay archivo. |
 | `fallback` | Un `linear-gradient(...)` por si la imagen no carga o todavía no existe. |
 
-Los premios actuales son 0, 10, 25, 50, 100, 200, 400, 800 y, al final, el personalizado de 1200. El orden del array es el orden del modal.
+Los premios actuales son 0, 25, 50, 100, 200, 300, 400, 600 y, al final, el personalizado de 800. El orden del array es el orden del modal.
 
 Para un banner nuevo con archivo propio:
 
@@ -260,7 +260,7 @@ Si cambias nombres de esas variables, actualiza a la vez `variablesDeBanner()` e
 
 ### El banner personalizado
 
-La última entrada usa `id: 'custom'` (`CUSTOM_BANNER_ID`). No tiene imagen en el repo. Al desbloquearla (1200 puntos) el modal ofrece subir un PNG, JPG o WEBP.
+La última entrada usa `id: 'custom'` (`CUSTOM_BANNER_ID`). No tiene imagen en el repo. Al desbloquearla (800 puntos) el modal ofrece subir un PNG, JPG, WEBP o GIF.
 
 La subida está en `js/api/profileApi.js`:
 
@@ -271,9 +271,9 @@ La subida está en `js/api/profileApi.js`:
 
 `profile.js` pinta el banner nuevo antes de esperar la respuesta y, si el update falla, restaura el id anterior. El mensaje de error sale en `#banner-feedback`.
 
-### Si quieres mover el umbral de 1200 puntos
+### Si quieres mover el umbral de 800 puntos
 
-Cambia el `pts` del objeto cuyo `id` es `'custom'` dentro de `BANNER_REWARDS`. El selector usa ese número para el candado. El texto de error de la subida, en `onArchivoBanner()` de `profile.js`, menciona “1200 puntos” a mano: si mueves el umbral, actualiza también esa frase. El servidor sigue siendo quien debe impedir que alguien con menos puntos escriba `banner_custom_url`; el `pts` del array solo es la regla de la interfaz.
+Cambia el `pts` del objeto cuyo `id` es `'custom'` dentro de `BANNER_REWARDS`. El selector y el texto de error de `onArchivoBanner()` leen ese número. Storage no lo lee: las policies `Banners: subir con 800 pts` (INSERT) y `Banners: reemplazar con 800 pts` (UPDATE) del bucket `banners` comparan `usuarios.puntos_totales` por su cuenta. Si bajas el candado y dejas esas policies en el umbral viejo, el botón se abre y la subida sigue fallando.
 
 ## Comentarios y likes
 

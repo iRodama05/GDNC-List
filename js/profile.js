@@ -409,7 +409,8 @@ async function onArchivoBanner(event) {
         mostrarFeedbackBanner('Banner personalizado guardado.');
     } catch (error) {
         console.error(error);
-        mostrarFeedbackBanner('No se pudo subir la imagen. Necesitas 1200 puntos y haber iniciado sesión.');
+        const puntosCustom = BANNER_REWARDS.find((banner) => banner.id === CUSTOM_BANNER_ID)?.pts;
+        mostrarFeedbackBanner(`No se pudo subir la imagen. Necesitas ${puntosCustom} puntos y haber iniciado sesión.`);
     }
 }
 
